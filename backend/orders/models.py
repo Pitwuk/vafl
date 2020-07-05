@@ -15,5 +15,8 @@ class Order(models.Model):
     speed = models.CharField(max_length=8, default='')
     color = models.CharField(max_length=5, default='')
     layers = models.IntegerField(default=2)
-    gerber = models.FileField(
-        upload_to='orders/gerbers/')
+
+
+class Gerber(models.Model):
+    orderNum = models.CharField(max_length=16, unique=True)
+    gerber = models.FileField(upload_to='orders/gerbers/')

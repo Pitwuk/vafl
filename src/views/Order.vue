@@ -22,16 +22,11 @@
               type="file"
               style="display: none"
               ref="fileInput"
-              accept="image/*"
+              accept=".zip"
               @change="onFilePicked"
             />
           </v-card-actions>
-          <v-img
-            contain
-            :src="imageUrl"
-            :height="imageUrl != '' ? '50' : '0'"
-          />
-
+          <v-img id="gerber-front" contain :src="imageUrl" height="100" />
           <v-divider></v-divider>
           <v-card-text>
             <span class="subheading">Size</span>
@@ -189,17 +184,42 @@ export default {
       this.$refs.fileInput.click();
     },
     onFilePicked(e) {
-      const files = e.target.files;
-      let filename = files[0].name;
+      var files = e.target.files;
+      var f = files[0];
+      var filename = f.name;
+
       if (filename.lastIndexOf(".") <= 0) {
         return alert("Please add a valid file");
       }
-      const fileReader = new FileReader();
-      fileReader.addEventListener("load", () => {
-        this.imageUrl = fileReader.result;
+
+      var jsZip = require("jszip");
+      var fs = require("browserify-fs");
+      this.imageUrl = jsZip.loadAsync(f).then(function(zip) {
+        Object.keys(zip.files).forEach(function(filename) {
+          zip.files[filename].async("string").then(function(fileData) {
+            fs.writeFile("Test.svg", fileData, (err) => {
+              if (err) throw err;
+              console.log("The file has been saved!");
+              fs.readFile("Test.svg", (err, data) => {
+                if (err) throw err;
+                var b = new Blob([data.buffer]);
+                const fileReader = new FileReader();
+                fileReader.addEventListener("load", () => {
+                  return fileReader.result;
+                });
+                fileReader.readAsDataURL(b);
+              });
+            });
+          });
+        });
       });
-      fileReader.readAsDataURL(files[0]);
-      this.gerber = files[0];
+
+      // const fileReader = new FileReader();
+      // fileReader.addEventListener("load", () => {
+      //   this.imageUrl = fileReader.result;
+      // });
+      // fileReader.readAsDataURL(f);
+      // this.gerber = f;
     },
   },
 };
