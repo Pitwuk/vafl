@@ -7,10 +7,9 @@
             <h2 class="display-1">Order PCB</h2>
           </v-card-title>
 
-          <v-card-text
-            >Please upload your Gerber files and select your
-            options.</v-card-text
-          >
+          <v-card-text>
+            Please upload your Gerber files and select your options.
+          </v-card-text>
 
           <v-divider></v-divider>
 
@@ -26,7 +25,12 @@
               @change="onFilePicked"
             />
           </v-card-actions>
-          <v-img id="gerber-front" contain :src="imageUrl" height="100" />
+          <v-img
+            id="gerber-front"
+            contain
+            src="../assets/Test.svg"
+            :height="imageUrl != '' ? 100 : 0"
+          />
           <v-divider></v-divider>
           <v-card-text>
             <span class="subheading">Size</span>
@@ -73,9 +77,9 @@
               mandatory
               @change="updatePrice"
             >
-              <v-chip v-for="speed in speeds" :key="speed" :value="speed">{{
-                speed
-              }}</v-chip>
+              <v-chip v-for="speed in speeds" :key="speed" :value="speed">
+                {{ speed }}
+              </v-chip>
             </v-chip-group>
           </v-card-text>
 
@@ -88,9 +92,9 @@
               mandatory
               @change="updatePrice"
             >
-              <v-chip v-for="color in colors" :key="color" :value="color">{{
-                color
-              }}</v-chip>
+              <v-chip v-for="color in colors" :key="color" :value="color">
+                {{ color }}
+              </v-chip>
             </v-chip-group>
           </v-card-text>
 
@@ -138,6 +142,7 @@
 
 <script>
 var pricePerCm = 0.3;
+
 export default {
   data: () => ({
     price: 0,
@@ -162,6 +167,7 @@ export default {
     speeds: ["Economy", "Fast", "Turbo"],
     color: "Any",
     colors: ["White", "Blue", "Red", "Any"],
+    orderNum: "",
   }),
   methods: {
     updatePrice() {
@@ -183,43 +189,46 @@ export default {
     onPickFile() {
       this.$refs.fileInput.click();
     },
-    onFilePicked(e) {
-      var files = e.target.files;
-      var f = files[0];
-      var filename = f.name;
+    async onFilePicked(e) {
+      try {
+        const axios = require("axios");
 
-      if (filename.lastIndexOf(".") <= 0) {
-        return alert("Please add a valid file");
+        var files = e.target.files;
+        var f = files[0];
+        var filename = f.name;
+
+        if (filename.lastIndexOf(".") <= 0) {
+          return alert("Please add a valid file");
+        }
+
+        this.imageUrl = "../assets/Test.svg";
+
+        //generate order number
+        this.orderNum =
+          Math.random()
+            .toString(36)
+            .substring(2, 10) +
+          Math.random()
+            .toString(36)
+            .substring(2, 10);
+
+        var formData = new FormData();
+        formData.append("orderNum", this.orderNum);
+        formData.append("gerber", f);
+
+        const response = await axios.post(
+          "http://toasterwaffles.ddns.net/api/files/",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        console.log(response);
+      } catch (e) {
+        console.error(e);
       }
-
-      var jsZip = require("jszip");
-      var fs = require("browserify-fs");
-      this.imageUrl = jsZip.loadAsync(f).then(function(zip) {
-        Object.keys(zip.files).forEach(function(filename) {
-          zip.files[filename].async("string").then(function(fileData) {
-            fs.writeFile("Test.svg", fileData, (err) => {
-              if (err) throw err;
-              console.log("The file has been saved!");
-              fs.readFile("Test.svg", (err, data) => {
-                if (err) throw err;
-                var b = new Blob([data.buffer]);
-                const fileReader = new FileReader();
-                fileReader.addEventListener("load", () => {
-                  return fileReader.result;
-                });
-                fileReader.readAsDataURL(b);
-              });
-            });
-          });
-        });
-      });
-
-      // const fileReader = new FileReader();
-      // fileReader.addEventListener("load", () => {
-      //   this.imageUrl = fileReader.result;
-      // });
-      // fileReader.readAsDataURL(f);
-      // this.gerber = f;
     },
   },
 };

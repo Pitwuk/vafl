@@ -25,7 +25,7 @@ SECRET_KEY = '2$44yz&#*@ta3yt=6)91=6o2p9w6md(bxjn2=s7=$0g(mz_%5s'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['toasterwaffles.ddns.net']
 
 
 # Application definition
