@@ -28,10 +28,11 @@ def files(request):
             gctx = GerberCairoContext()
             pcb = PCB.from_directory('./orders/gerbers/'+orderNum[:-4])
             gctx.render_layers(pcb.top_layers,
-                               'pcb_top.png',
+                               './orders/gerbers/'+orderNum[:-4] + '/pcb.png',
                                theme.THEMES['default'], verbose=True)
             # return result image
-            with open('pcb_top.png', "rb") as f:
-                return HttpResponse(f.read(), content_type="image/png")
+            # with open('./orders/gerbers/'+orderNum[:-4]+'/pcb.png', "rb") as f:
+            #     return HttpResponse(f.read(), content_type="image/png")
+            return HttpResponse(status=204)
         else:
             return HttpResponse(status=400)

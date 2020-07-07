@@ -25,8 +25,8 @@
           <v-img
             id="gerber-front"
             contain
-            src="data:image/png;base64,{{gerber}}"
-            :height="gerber != '' ? 100 : 0"
+            :src="`${imageUrl}/pcb.png`"
+            :height="imageUrl != '' ? 400 : 0"
           />
           <v-divider></v-divider>
           <v-card-text>
@@ -208,8 +208,8 @@ export default {
             }
           }
         );
-        console.log(response);
-        this.gerber = response.data;
+        this.imageUrl =
+          "http://toasterwaffles.ddns.net/gerbers/" + this.orderNum;
       } catch (e) {
         console.error(e);
       }
