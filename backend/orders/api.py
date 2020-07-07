@@ -1,6 +1,6 @@
-from .models import Order, Gerber
+from .models import Order
 from rest_framework import viewsets, permissions
-from .serializers import OrderSerializer, GerberSerializer
+from .serializers import OrderSerializer
 
 # Order Viewset
 
@@ -15,9 +15,9 @@ class OrderViewSet(viewsets.ModelViewSet):
 # Gerber Viewset
 
 
-class GerberViewSet(viewsets.ModelViewSet):
-    queryset = Gerber.objects.all()
-    permission_classes = [
-        permissions.AllowAny
-    ]
-    serializer_class = GerberSerializer
+# class GerberViewSet(viewsets.ModelViewSet):
+#     queryset = Gerber.objects.all()
+#     permission_classes = [
+#         permissions.AllowAny
+#     ]
+#     serializer_class = GerberSerializer

@@ -17,6 +17,6 @@ class Order(models.Model):
     layers = models.IntegerField(default=2)
 
 
-class Gerber(models.Model):
-    orderNum = models.CharField(max_length=16, unique=True)
-    gerber = models.FileField(upload_to='orders/gerbers/')
+# class Gerber(models.Model):
+#     orderNum = models.CharField(max_length=16, unique=True)
+#     gerber = models.FileField(upload_to='orders/gerbers/')

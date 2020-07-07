@@ -7,19 +7,16 @@
             <h2 class="display-1">Order PCB</h2>
           </v-card-title>
 
-          <v-card-text>
-            Please upload your Gerber files and select your options.
-          </v-card-text>
+          <v-card-text>Please upload your Gerber files and select your options.</v-card-text>
 
           <v-divider></v-divider>
 
           <v-card-actions>
-            <v-btn block class="white--text" color="primary" @click="onPickFile"
-              >Upload Files</v-btn
-            >
+            <v-btn block class="white--text" color="primary" @click="onPickFile">Upload Files</v-btn>
             <input
               type="file"
               style="display: none"
+              name="document"
               ref="fileInput"
               accept=".zip"
               @change="onFilePicked"
@@ -28,8 +25,8 @@
           <v-img
             id="gerber-front"
             contain
-            src="../assets/Test.svg"
-            :height="imageUrl != '' ? 100 : 0"
+            src="data:image/png;base64,{{gerber}}"
+            :height="gerber != '' ? 100 : 0"
           />
           <v-divider></v-divider>
           <v-card-text>
@@ -64,8 +61,7 @@
               v-model="quantity"
               :rules="quantRules"
               @change="updatePrice"
-              >{{ quantity }}</v-text-field
-            >
+            >{{ quantity }}</v-text-field>
           </v-card-text>
 
           <v-card-text>
@@ -77,9 +73,7 @@
               mandatory
               @change="updatePrice"
             >
-              <v-chip v-for="speed in speeds" :key="speed" :value="speed">
-                {{ speed }}
-              </v-chip>
+              <v-chip v-for="speed in speeds" :key="speed" :value="speed">{{ speed }}</v-chip>
             </v-chip-group>
           </v-card-text>
 
@@ -92,9 +86,7 @@
               mandatory
               @change="updatePrice"
             >
-              <v-chip v-for="color in colors" :key="color" :value="color">
-                {{ color }}
-              </v-chip>
+              <v-chip v-for="color in colors" :key="color" :value="color">{{ color }}</v-chip>
             </v-chip-group>
           </v-card-text>
 
@@ -107,12 +99,7 @@
               mandatory
               @change="updatePrice"
             >
-              <v-chip
-                v-for="layers in layerOpt"
-                :key="layers"
-                :value="layers"
-                >{{ layers }}</v-chip
-              >
+              <v-chip v-for="layers in layerOpt" :key="layers" :value="layers">{{ layers }}</v-chip>
             </v-chip-group>
           </v-card-text>
         </v-card>
@@ -125,10 +112,7 @@
           </v-card-title>
           <v-divider></v-divider>
           <v-card-text>
-            <span
-              class="title"
-              v-text="'$' + price.toFixed(2).toString()"
-            ></span>
+            <span class="title" v-text="'$' + price.toFixed(2).toString()"></span>
           </v-card-text>
 
           <v-card-actions>
@@ -147,19 +131,19 @@ export default {
   data: () => ({
     price: 0,
     imageUrl: "",
-    gerber: null,
+    gerber: "",
     quantity: "1",
     quantRules: [
-      (value) => !!value || "Required",
-      (value) =>
-        (!isNaN(value) && !value.includes(".")) || "Must be an integer value",
+      value => !!value || "Required",
+      value =>
+        (!isNaN(value) && !value.includes(".")) || "Must be an integer value"
     ],
     width: "0",
     height: "0",
     sizeRules: [
-      (value) => !!value || "Required",
-      (value) =>
-        (!isNaN(value) && !value.includes(".")) || "Must be an integer value",
+      value => !!value || "Required",
+      value =>
+        (!isNaN(value) && !value.includes(".")) || "Must be an integer value"
     ],
     layers: "2",
     layerOpt: ["1", "2"],
@@ -167,7 +151,7 @@ export default {
     speeds: ["Economy", "Fast", "Turbo"],
     color: "Any",
     colors: ["White", "Blue", "Red", "Any"],
-    orderNum: "",
+    orderNum: ""
   }),
   methods: {
     updatePrice() {
@@ -191,8 +175,6 @@ export default {
     },
     async onFilePicked(e) {
       try {
-        const axios = require("axios");
-
         var files = e.target.files;
         var f = files[0];
         var filename = f.name;
@@ -200,9 +182,6 @@ export default {
         if (filename.lastIndexOf(".") <= 0) {
           return alert("Please add a valid file");
         }
-
-        this.imageUrl = "../assets/Test.svg";
-
         //generate order number
         this.orderNum =
           Math.random()
@@ -212,24 +191,29 @@ export default {
             .toString(36)
             .substring(2, 10);
 
+        //form data
         var formData = new FormData();
         formData.append("orderNum", this.orderNum);
         formData.append("gerber", f);
+
+        //http file post
+        const axios = require("axios");
 
         const response = await axios.post(
           "http://toasterwaffles.ddns.net/api/files/",
           formData,
           {
             headers: {
-              "Content-Type": "multipart/form-data",
-            },
+              "Content-Type": "multipart/form-data"
+            }
           }
         );
         console.log(response);
+        this.gerber = response.data;
       } catch (e) {
         console.error(e);
       }
-    },
-  },
+    }
+  }
 };
 </script>

@@ -1,8 +1,8 @@
 from rest_framework import routers
-from .api import OrderViewSet, GerberViewSet
+from .api import OrderViewSet
+from .views import files
 
 router = routers.DefaultRouter()
 router.register('api/orders', OrderViewSet, 'orders')
-router.register('api/files', GerberViewSet, 'files')
 
 urlpatterns = router.urls
