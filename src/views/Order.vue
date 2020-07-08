@@ -22,12 +22,7 @@
               @change="onFilePicked"
             />
           </v-card-actions>
-          <v-img
-            id="gerber-front"
-            contain
-            :src="`${imageUrl}/pcb.png`"
-            :height="imageUrl != '' ? 400 : 0"
-          />
+          <v-img id="gerber-front" contain :src="`${imageUrl}/pcb.png`" />
           <v-divider></v-divider>
           <v-card-text>
             <span class="subheading">Size</span>
@@ -36,7 +31,7 @@
                 <v-text-field
                   v-model="width"
                   :rules="sizeRules"
-                  label="Width (cm)"
+                  label="Width (mm)"
                   required
                   @change="updatePrice"
                 ></v-text-field>
@@ -46,7 +41,7 @@
                 <v-text-field
                   v-model="height"
                   :rules="sizeRules"
-                  label="Height (cm)"
+                  label="Height (mm)"
                   required
                   @change="updatePrice"
                 ></v-text-field>
@@ -142,12 +137,11 @@ export default {
     height: "0",
     sizeRules: [
       value => !!value || "Required",
-      value =>
-        (!isNaN(value) && !value.includes(".")) || "Must be an integer value"
+      value => !isNaN(value) || "Must be a Number"
     ],
     layers: "2",
     layerOpt: ["1", "2"],
-    speed: "Fast",
+    speed: "Economy",
     speeds: ["Economy", "Fast", "Turbo"],
     color: "Any",
     colors: ["White", "Blue", "Red", "Any"],
@@ -158,14 +152,14 @@ export default {
       if (this.speed == "Fast")
         this.price =
           parseInt(this.quantity) *
-          parseFloat(this.width) *
-          parseFloat(this.height) *
+          parseFloat(this.width / 10) *
+          parseFloat(this.height / 10) *
           pricePerCm;
       else if (this.speed == "Economy")
         this.price =
           (parseInt(this.quantity) *
-            parseFloat(this.width) *
-            parseFloat(this.height) *
+            parseFloat(this.width / 10) *
+            parseFloat(this.height / 10) *
             pricePerCm) /
           2;
       else this.price = 250;
@@ -208,6 +202,11 @@ export default {
             }
           }
         );
+
+        this.width = response.data.width;
+        this.height = response.data.height;
+        this.updatePrice();
+
         this.imageUrl =
           "http://toasterwaffles.ddns.net/gerbers/" + this.orderNum;
       } catch (e) {
