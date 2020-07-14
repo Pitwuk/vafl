@@ -11,6 +11,8 @@ from PIL import Image
 from gerber import PCB
 from gerber.render import theme
 from gerber.render.cairo_backend import GerberCairoContext
+import stripe
+from decouple import config
 
 
 @csrf_exempt
@@ -65,3 +67,21 @@ def concatenate_pcb(orderNum):
         combined.paste(top, (0, 0))
         combined.paste(bottom, (0, top.height))
     return combined
+
+
+@csrf_exempt
+def create_charge(request):
+    post_data = json.loads(request.body)
+    amount = round(float(post_data['price']) * 100)
+    stripe.api_key = config('STRIPE_DEV_SEC')
+    charge = stripe.Charge.create(
+        amount=amount,
+        currency='usd',
+        card=post_data['token'],
+        description=post_data['orderNum']
+    )
+    response_object = {
+        'status': 'success',
+        'charge': charge
+    }
+    return JsonResponse(response_object)

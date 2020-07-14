@@ -113,7 +113,6 @@
                   v-model="card.number"
                   :rules="cardRules"
                   label="Card Number"
-                  :counter="16"
                   v-mask="'#### #### #### ####'"
                   required
                 ></v-text-field>
@@ -142,7 +141,10 @@
             </v-row>
           </v-container>
         </v-form>
-        <v-btn color="primary" @click="valid ? createToken() : null"
+        <v-btn
+          color="primary"
+          :disabled="stripeCheck || !valid"
+          @click="valid ? createToken() : null"
           >Submit</v-btn
         >
         <v-btn color="primary" @click="valid ? (e1 = 1) : null">Continue</v-btn>
@@ -152,8 +154,6 @@
     </v-stepper-items>
   </v-stepper>
 </template>
-
-<script src="https://js.stripe.com/v3/"></script>
 
 <script>
 import globals from "../globals.js";
@@ -253,14 +253,13 @@ export default {
     },
     cardRules: [
       (v) => !!v || "Card Number is required",
-      (v) => (!isNaN(v) && !v.includes(".")) || "Must be a valid card",
+      (v) => window.Stripe.validateCardNumber(v) || "Must be a valid card",
       (v) => v.length == 19 || "Card number must be 16 digits",
     ],
     cvcRules: [
       (v) => !!v || "Card Verification Code is required",
       (v) =>
-        (!isNaN(v) && !v.includes(".")) ||
-        "Card Verification Code must be valid",
+        window.Stripe.validateCVC(v) || "Card Verification Code must be valid",
       (v) => v.length == 3 || "Card Verification Code must be 3 digits",
     ],
     dateRules: [
@@ -327,7 +326,28 @@ export default {
           // eslint-disable-next-line
           console.error(response);
         } else {
-          console.log("token success");
+          const axios = require("axios");
+
+          globals.orderNum =
+            Math.random()
+              .toString(36)
+              .substring(2, 10) +
+            Math.random()
+              .toString(36)
+              .substring(2, 10); //used in development DELETE AFTER
+          const payload = {
+            token: response.id,
+            orderNum: globals.orderNum,
+            price: globals.price,
+          };
+          axios
+            .post("http://toasterwaffles.ddns.net/api/charge/", payload)
+            .then(() => {
+              this.$router.push({ path: "/complete" });
+            })
+            .catch((error) => {
+              console.error(error);
+            });
         }
       });
     },

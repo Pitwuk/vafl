@@ -278,6 +278,7 @@ export default {
         globals.colors = this.colors;
         globals.layers = this.layers;
         globals.price = this.price;
+        globals.orderNum = this.orderNum;
 
         this.$router.push("/purchase");
       }

@@ -10,8 +10,11 @@ var layers = "2";
 var firstName = "";
 var lastName = "";
 var email = "";
-
 var address = "";
 var city = "";
 var state = "";
 var zip = 0;
+
+//order info
+var orderNum = "";
+var price = 0;

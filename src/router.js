@@ -24,6 +24,11 @@ export default new Router({
       component: () => import("./views/Purchase.vue"),
     },
     {
+      path: "/complete",
+      name: "complete",
+      component: () => import("./views/Complete.vue"),
+    },
+    {
       path: "/about",
       name: "about",
       component: () => import("./views/About.vue"),
