@@ -99,17 +99,53 @@
       </v-stepper-content>
 
       <v-stepper-content step="2">
-        <v-card class="mb-12" color="grey lighten-1" height="200px"></v-card>
-
         <v-btn color="primary" @click="e1 = 3">Continue</v-btn>
 
         <v-btn text @click="e1 = 1">Back</v-btn>
       </v-stepper-content>
 
       <v-stepper-content step="3">
-        <v-card class="mb-12" color="grey lighten-1" height="200px"></v-card>
+        <v-form v-model="valid">
+          <v-container>
+            <v-row>
+              <v-col cols="12" md="8">
+                <v-text-field
+                  v-model="card.number"
+                  :rules="cardRules"
+                  label="Card Number"
+                  :counter="16"
+                  v-mask="'#### #### #### ####'"
+                  required
+                ></v-text-field>
+              </v-col>
 
-        <v-btn color="primary" @click="e1 = 1">Continue</v-btn>
+              <v-col cols="12" md="2">
+                <v-text-field
+                  v-model="card.cvc"
+                  :rules="cvcRules"
+                  :counter="3"
+                  label="CVC"
+                  v-mask="'###'"
+                  required
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" md="2">
+                <v-text-field
+                  v-model="card.exp"
+                  :rules="dateRules"
+                  label="MM/YY"
+                  v-mask="'##/##'"
+                  required
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-form>
+        <v-btn color="primary" @click="valid ? createToken() : null"
+          >Submit</v-btn
+        >
+        <v-btn color="primary" @click="valid ? (e1 = 1) : null">Continue</v-btn>
 
         <v-btn text @click="e1 = 2">Back</v-btn>
       </v-stepper-content>
@@ -117,11 +153,15 @@
   </v-stepper>
 </template>
 
+<script src="https://js.stripe.com/v3/"></script>
+
 <script>
 import globals from "../globals.js";
+import { mask } from "vue-the-mask";
+
 export default {
   data: () => ({
-    e1: 1,
+    e1: 3,
     valid: false,
     firstname: "",
     lastname: "",
@@ -206,14 +246,36 @@ export default {
       (v) => (!isNaN(v) && !v.includes(".")) || "Must be an integer value",
       (v) => v.length == 5 || "Zip Code must be 5 digits",
     ],
+    card: {
+      number: "",
+      cvc: "",
+      exp: "",
+    },
+    cardRules: [
+      (v) => !!v || "Card Number is required",
+      (v) => (!isNaN(v) && !v.includes(".")) || "Must be a valid card",
+      (v) => v.length == 19 || "Card number must be 16 digits",
+    ],
+    cvcRules: [
+      (v) => !!v || "Card Verification Code is required",
+      (v) =>
+        (!isNaN(v) && !v.includes(".")) ||
+        "Card Verification Code must be valid",
+      (v) => v.length == 3 || "Card Verification Code must be 3 digits",
+    ],
+    dateRules: [
+      (v) => !!v || "Expiration date is required",
+      (v) => window.Stripe.validateExpiry(v) || "Expiration date must be valid",
+      (v) => v.length == 5 || "Expiration date must be 4 digits",
+    ],
+    stripeCheck: false,
   }),
   methods: {
     calculateShipping() {
       this.e1 = 2;
+      this.valid = false;
 
-      var shippo = require("shippo")(
-        "shippo_test_cbf20a69b49d247b111dff65de933add66aee981"
-      );
+      var shippo = require("shippo")(process.env.VUE_APP_SHIPPO_SECRET_KEY);
       var addressFrom = {
         name: "VAFL PCB",
         street1: "5716 Lakeshore Rd",
@@ -254,7 +316,23 @@ export default {
         }
       );
     },
+
+    createToken() {
+      this.stripeCheck = true;
+      window.Stripe.setPublishableKey(process.env.VUE_APP_STRIPE_PUB_KEY);
+      window.Stripe.createToken(this.card, (status, response) => {
+        if (response.error) {
+          this.stripeCheck = false;
+          this.errors.push(response.error.message);
+          // eslint-disable-next-line
+          console.error(response);
+        } else {
+          console.log("token success");
+        }
+      });
+    },
   },
+  directives: { mask },
 };
 </script>
 

@@ -8,6 +8,8 @@ import axios from "axios";
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
 axios.defaults.xsrfCookieName = "csrftoken";
 
+require("dotenv").config();
+
 Vue.config.productionTip = false;
 
 Vue.use(VueLocalStorage);
