@@ -7,6 +7,7 @@ import json
 import zipfile
 import base64
 import os
+import shutil
 from PIL import Image
 from gerber import PCB
 from gerber.render import theme
@@ -47,7 +48,7 @@ def files(request):
             # splice images together
             concatenate_pcb(orderNum).save(
                 './orders/images/'+orderNum[:-4] + '.png')
-            os.rmdir('./orders/gerbers/'+orderNum[:-4])
+            shutil.rmtree('./orders/gerbers/'+orderNum[:-4])
 
             # get board size
             width = pcb.board_bounds[0][1]
