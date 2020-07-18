@@ -28,7 +28,7 @@ def files(request):
             print('Recieved Gerber files')
             # save zip
             orderNum = request.POST['orderNum'] + '.zip'
-            fs = FileSystemStorage()
+            fs = FileSystemStorage(location='./orders/gerbers/')
             fs.save(orderNum, uploaded_file)
             # extract gerber files
             with zipfile.ZipFile('./orders/gerbers/'+orderNum, 'r') as zip_ref:
@@ -47,7 +47,7 @@ def files(request):
             # splice images together
             concatenate_pcb(orderNum).save(
                 './orders/images/'+orderNum[:-4] + '.png')
-            os.remove('./orders/gerbers/'+orderNum[:-4])
+            os.rmdir('./orders/gerbers/'+orderNum[:-4])
 
             # get board size
             width = pcb.board_bounds[0][1]

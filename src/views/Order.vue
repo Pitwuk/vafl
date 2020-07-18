@@ -8,10 +8,10 @@
               <h2 class="display-1">Order PCB</h2>
             </v-card-title>
 
-            <v-card-text
-              >Please upload your Gerber files and select your
-              options.</v-card-text
-            >
+            <v-card-text>
+              Please upload your Gerber files and select your
+              options.
+            </v-card-text>
 
             <v-divider></v-divider>
 
@@ -22,8 +22,7 @@
                 color="primary"
                 v-if="!imageUrl"
                 @click="onPickFile"
-                >Upload Files</v-btn
-              >
+              >Upload Files</v-btn>
 
               <input
                 type="file"
@@ -35,20 +34,9 @@
                 @change="onFilePicked"
               />
             </v-card-actions>
-            <v-progress-linear
-              indeterminate
-              color="green"
-              v-if="loading"
-            ></v-progress-linear>
-            <v-card-text class="red--text" v-if="failed"
-              >Invalid File</v-card-text
-            >
-            <v-img
-              id="gerber-front"
-              contain
-              :src="`${imageUrl}/pcb.png`"
-              max-height="500"
-            />
+            <v-progress-linear indeterminate color="green" v-if="loading"></v-progress-linear>
+            <v-card-text class="red--text" v-if="failed">Invalid File</v-card-text>
+            <v-img id="gerber-front" contain :src="`${imageUrl}.png`" max-height="500" />
             <v-divider></v-divider>
             <v-card-text>
               <span class="subheading">Size</span>
@@ -82,8 +70,7 @@
                 v-model="quantity"
                 :rules="quantRules"
                 @change="updatePrice"
-                >{{ quantity }}</v-text-field
-              >
+              >{{ quantity }}</v-text-field>
             </v-card-text>
 
             <v-card-text>
@@ -95,9 +82,11 @@
                 mandatory
                 @change="updatePrice"
               >
-                <v-chip v-for="speed in speeds" :key="speed" :value="speed">{{
+                <v-chip v-for="speed in speeds" :key="speed" :value="speed">
+                  {{
                   speed
-                }}</v-chip>
+                  }}
+                </v-chip>
               </v-chip-group>
             </v-card-text>
 
@@ -110,9 +99,11 @@
                 mandatory
                 @change="updatePrice"
               >
-                <v-chip v-for="color in colors" :key="color" :value="color">{{
+                <v-chip v-for="color in colors" :key="color" :value="color">
+                  {{
                   color
-                }}</v-chip>
+                  }}
+                </v-chip>
               </v-chip-group>
             </v-card-text>
 
@@ -125,12 +116,7 @@
                 mandatory
                 @change="updatePrice"
               >
-                <v-chip
-                  v-for="layers in layerOpt"
-                  :key="layers"
-                  :value="layers"
-                  >{{ layers }}</v-chip
-                >
+                <v-chip v-for="layers in layerOpt" :key="layers" :value="layers">{{ layers }}</v-chip>
               </v-chip-group>
             </v-card-text>
           </v-card>
@@ -143,10 +129,7 @@
             </v-card-title>
             <v-divider></v-divider>
             <v-card-text>
-              <span
-                class="title"
-                v-text="'$' + price.toFixed(2).toString()"
-              ></span>
+              <span class="title" v-text="'$' + price.toFixed(2).toString()"></span>
             </v-card-text>
 
             <v-card-actions>
@@ -155,8 +138,7 @@
                 class="white--text"
                 color="primary"
                 @click="valid ? purchaseRedirect() : null"
-                >Purchase</v-btn
-              >
+              >Purchase</v-btn>
             </v-card-actions>
           </v-card>
         </v-col>
@@ -177,16 +159,16 @@ export default {
     gerber: "",
     quantity: "1",
     quantRules: [
-      (value) => !!value || "Required",
-      (value) =>
-        (!isNaN(value) && !value.includes(".")) || "Must be an integer value",
+      value => !!value || "Required",
+      value =>
+        (!isNaN(value) && !value.includes(".")) || "Must be an integer value"
     ],
     width: "0",
     height: "0",
     sizeRules: [
-      (value) => !!value || "Required",
-      (value) => !isNaN(value) || "Must be a number",
-      (value) => value > 0 || "Must be greater than 0",
+      value => !!value || "Required",
+      value => !isNaN(value) || "Must be a number",
+      value => value > 0 || "Must be greater than 0"
     ],
     layers: "2",
     layerOpt: ["1", "2"],
@@ -196,7 +178,7 @@ export default {
     colors: ["White", "Blue", "Red", "Any"],
     orderNum: "",
     loading: false,
-    failed: false,
+    failed: false
   }),
   methods: {
     updatePrice() {
@@ -251,8 +233,8 @@ export default {
           formData,
           {
             headers: {
-              "Content-Type": "multipart/form-data",
-            },
+              "Content-Type": "multipart/form-data"
+            }
           }
         );
 
@@ -261,7 +243,7 @@ export default {
         this.updatePrice();
 
         this.imageUrl =
-          "http://toasterwaffles.ddns.net/gerbers/" + this.orderNum;
+          "http://toasterwaffles.ddns.net/images/" + this.orderNum;
         this.loading = false;
       } catch (e) {
         console.error(e);
@@ -282,7 +264,7 @@ export default {
 
         this.$router.push("/purchase");
       }
-    },
-  },
+    }
+  }
 };
 </script>
