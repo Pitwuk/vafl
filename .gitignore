@@ -1,6 +1,9 @@
 .DS_Store
 node_modules
-backend/backend/settings.py
+/backend/backend/settings.py
+/backend/orders/gerbers
+/backend/orders/images
+/backend/orders/current
 /dist
 
 # local env files

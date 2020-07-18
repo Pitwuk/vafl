@@ -13,6 +13,11 @@ from gerber.render import theme
 from gerber.render.cairo_backend import GerberCairoContext
 import stripe
 from decouple import config
+from .models import Order
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 
 @csrf_exempt
@@ -41,9 +46,8 @@ def files(request):
 
             # splice images together
             concatenate_pcb(orderNum).save(
-                './orders/gerbers/'+orderNum[:-4] + '/pcb.png')
-            os.remove('./orders/gerbers/'+orderNum[:-4] + '/top.png')
-            os.remove('./orders/gerbers/'+orderNum[:-4] + '/bottom.png')
+                './orders/images/'+orderNum[:-4] + '.png')
+            os.remove('./orders/gerbers/'+orderNum[:-4])
 
             # get board size
             width = pcb.board_bounds[0][1]
@@ -85,3 +89,43 @@ def create_charge(request):
         'charge': charge
     }
     return JsonResponse(response_object)
+
+
+@csrf_exempt
+def order_data(request):
+    if request.method == 'POST':
+        try:
+            body = json.loads(request.body)
+            with open('./orders/current/'+body['orderNum']+'.json', 'w') as outfile:
+                json.dump(body, outfile)
+        except:
+            print('error saving order data')
+        try:
+            msg = MIMEMultipart("alternative")
+            msg['Subject'] = 'VAFL PCB Order Success'
+            msg['From'] = 'vaflpcb@gmail.com'
+            msg['To'] = body['email']
+
+            with open('./orders/emailTemplatePlain.txt') as template:
+                plain = MIMEText(template.read(), "plain")
+            with open('./orders/emailTemplateHTML.txt') as template:
+                fancy = MIMEText(template.read(), "html")
+            msg.attach(plain)
+            msg.attach(fancy)
+
+            port = 465
+            password = config('EMAIL_PASSWORD')
+
+            context = ssl.create_default_context()
+
+            with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
+                server.login(msg['From'], password)
+                server.sendmail(msg['From'], msg['To'], msg.as_string())
+                server.quit()
+        except Exception as e:
+            print(e)
+            print('error sending email')
+
+        return HttpResponse(status=200)
+    else:
+        return HttpResponse(status=400)

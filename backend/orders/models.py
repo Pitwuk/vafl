@@ -7,7 +7,6 @@ class Order(models.Model):
     first = models.CharField(max_length=32, default='')
     last = models.CharField(max_length=32, default='')
     email = models.EmailField(max_length=64, default='')
-    phone = models.IntegerField(blank=True)
     address = models.CharField(max_length=128, default='')
     city = models.CharField(max_length=32, default='')
     state = models.CharField(max_length=2, default='')

@@ -18,3 +18,4 @@ var zip = 0;
 //order info
 var orderNum = "";
 var price = 0;
+var shippingPrice = 0;

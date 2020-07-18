@@ -1,0 +1,9 @@
+<html>
+  <body>
+  <h1>Order Successfull</h1>
+    <p>Thank you for ordering from VAFL PCB.<br>
+    You can check the status of your order at 
+       <a href="http://www.vaflpcb.com">VAFL PCB</a>. 
+    </p>
+  </body>
+</html>

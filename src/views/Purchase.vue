@@ -99,13 +99,47 @@
       </v-stepper-content>
 
       <v-stepper-content step="2">
-        <v-btn color="primary" @click="e1 = 3">Continue</v-btn>
+        <v-list>
+          <v-list-item-group v-model="shippingMethod" color="primary">
+            <v-list-item v-for="(shippingMethod, i) in shippingRates" :key="i">
+              <v-list-item-content>
+                <v-list-item-title
+                  v-text="shippingMethod.amount"
+                ></v-list-item-title>
+              </v-list-item-content>
+
+              <v-list-item-content>
+                <v-list-item-title
+                  v-text="shippingMethod.estimated_days"
+                ></v-list-item-title>
+              </v-list-item-content>
+
+              <v-list-item-content>
+                <v-list-item-title
+                  v-text="shippingMethod.provider"
+                ></v-list-item-title>
+              </v-list-item-content>
+              <v-list-item-content>
+                <v-list-item-title
+                  v-text="shippingMethod.servicelevel.name"
+                ></v-list-item-title>
+              </v-list-item-content>
+
+              <v-list-item-icon>
+                <v-img :src="shippingMethod.provider_image_75" />
+              </v-list-item-icon>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+
+        <v-btn color="primary" @click="handleShipping()">Continue</v-btn>
 
         <v-btn text @click="e1 = 1">Back</v-btn>
       </v-stepper-content>
 
       <v-stepper-content step="3">
         <v-form v-model="valid">
+          <!-- <v-textarea>Price: {{ boardPrice }} + {{ shippingRates[shippingMethod]['amount'] }} = {{totalCost}}</v-textarea> -->
           <v-container>
             <v-row>
               <v-col cols="12" md="8">
@@ -147,7 +181,6 @@
           @click="valid ? createToken() : null"
           >Submit</v-btn
         >
-        <v-btn color="primary" @click="valid ? (e1 = 1) : null">Continue</v-btn>
 
         <v-btn text @click="e1 = 2">Back</v-btn>
       </v-stepper-content>
@@ -161,7 +194,7 @@ import { mask } from "vue-the-mask";
 
 export default {
   data: () => ({
-    e1: 3,
+    e1: 1,
     valid: false,
     firstname: "",
     lastname: "",
@@ -246,6 +279,10 @@ export default {
       (v) => (!isNaN(v) && !v.includes(".")) || "Must be an integer value",
       (v) => v.length == 5 || "Zip Code must be 5 digits",
     ],
+    shippingRates: [],
+    shippingMethod: 0,
+    boardPrice: globals.price,
+    totalCost: 0,
     card: {
       number: "",
       cvc: "",
@@ -270,7 +307,7 @@ export default {
     stripeCheck: false,
   }),
   methods: {
-    calculateShipping() {
+    async calculateShipping() {
       this.e1 = 2;
       this.valid = false;
 
@@ -293,29 +330,51 @@ export default {
         email: this.email,
       };
       var parcel = {
-        length: (globals.height * globals.quantity) / 10,
-        width: (globals.width * globals.quantity) / 10,
-        height: 0.16,
+        template: null,
+        length: ((globals.height * globals.quantity) / 10)
+          .toFixed(4)
+          .toString(),
+        width: ((globals.width * globals.quantity) / 10).toFixed(4).toString(),
+        height: "0.16",
         distance_unit: "cm",
-        weight:
-          ((globals.width * globals.height * globals.quantity) / 10) * 0.035,
+        weight: (
+          ((globals.width * globals.height * globals.quantity) / 10) *
+          0.035
+        )
+          .toFixed(4)
+          .toString(),
         mass_unit: "oz",
+        extra: {},
+        test: true,
       };
-      shippo.shipment.create(
+      const shipment = await shippo.shipment.create(
         {
           address_from: addressFrom,
           address_to: addressTo,
           parcels: [parcel],
-          async: false,
+          async: true,
         },
         function(err, shipment) {
           if (err) {
             console.log(err);
-          } else console.log(shipment);
+          }
         }
       );
+      this.shippingRates = shipment.rates;
+      this.shippingRates.sort(this.sortShippingRates);
     },
+    sortShippingRates(a, b) {
+      if (parseFloat(a.amount) > parseFloat(b.amount)) return 1;
+      if (parseFloat(b.amount) > parseFloat(a.amount)) return -1;
 
+      return 0;
+    },
+    handleShipping() {
+      this.e1 = 3;
+      globals.shippingPrice = this.shippingRates[this.shippingMethod]["amount"];
+      this.totalCost =
+        this.shippingRates[this.shippingMethod].amount + this.boardPrice;
+    },
     createToken() {
       this.stripeCheck = true;
       window.Stripe.setPublishableKey(process.env.VUE_APP_STRIPE_PUB_KEY);
@@ -334,16 +393,49 @@ export default {
               .substring(2, 10) +
             Math.random()
               .toString(36)
-              .substring(2, 10); //used in development DELETE AFTER
+              .substring(2, 10);
+          globals.price = 20.99; //used in development DELETE AFTER
           const payload = {
             token: response.id,
             orderNum: globals.orderNum,
-            price: globals.price,
+            price:
+              parseFloat(globals.price) + parseFloat(globals.shippingPrice),
           };
           axios
             .post("http://toasterwaffles.ddns.net/api/charge/", payload)
             .then(() => {
-              this.$router.push({ path: "/complete" });
+              //put info to api
+
+              try {
+                //form data
+                const formData = {
+                  orderNum: globals.orderNum,
+                  first: this.firstName,
+                  last: this.lastName,
+                  email: this.email,
+                  address: this.address,
+                  city: this.city,
+                  state: this.state,
+                  zipCode: this.zip,
+                  quantity: globals.quantity,
+                  speed: globals.speed,
+                  color: globals.color,
+                  layers: globals.layers,
+                };
+
+                //http file post
+                const axios = require("axios");
+
+                axios
+                  .post("http://toasterwaffles.ddns.net/api/orders/", formData)
+                  .then(() => {
+                    this.$router.push({ path: "/complete" });
+                  });
+              } catch (e) {
+                console.error(e);
+                this.loading = false;
+                this.failed = true;
+              }
             })
             .catch((error) => {
               console.error(error);
