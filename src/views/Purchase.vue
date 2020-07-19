@@ -368,7 +368,7 @@ export default {
 
       if (layers == 0 || layers > 11) {
         //8.5x12 envelope
-        var layers = globals.quantity / Math.floor(304.8 / globals.height);
+        layers = globals.quantity / Math.floor(304.8 / globals.height);
         globals.quantity / Math.floor(215.9 / globals.width) > layers
           ? (layers = globals.quantity / Math.floor(215.9 / globals.width))
           : null;
