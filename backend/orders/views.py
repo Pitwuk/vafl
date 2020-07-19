@@ -153,5 +153,32 @@ def order_data(request):
             print('error sending email')
 
         return HttpResponse(status=200)
+    elif request.method == 'PUT':
+        body = json.loads(request.body)
+        try:
+            mydb = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password=config('MYSQL_PASS'),
+                database='vafl'
+            )
+            mycursor = mydb.cursor()
+            mycursor.execute(
+                "SELECT * FROM orders WHERE orderNum = '"+body['orderNum']+"'")
+
+            order_arr = []
+            for x in mycursor:
+                order_arr = list(x)
+                print('order found')
+
+            order_arr[13] = str(order_arr[13])
+            print(order_arr[13])
+            response_object = json.dumps(order_arr)
+
+            return JsonResponse(response_object, safe=False)
+
+        except Exception as e:
+            print(e)
+            print('error making sql query')
     else:
         return HttpResponse(status=400)

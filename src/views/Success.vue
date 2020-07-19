@@ -9,9 +9,9 @@
       <v-col cols="12" md="6">
         <v-card class="secondary">
           <h3 align="center">Order Summary:</h3>
-          <p>Boards: ${{boardPrice}}</p>
+          <p>Boards: ${{boardPrice.toFixed(2)}}</p>
           <p>Shipping: ${{shippingPrice}}</p>
-          <h4>Total: ${{parseFloat(boardPrice)+parseFloat(shippingPrice)}}</h4>
+          <h4 id="total">Total: ${{(parseFloat(boardPrice)+parseFloat(shippingPrice)).toFixed(2)}}</h4>
         </v-card>
       </v-col>
       <v-col cols="12" md="6">
@@ -24,6 +24,7 @@
           />
           <p>Quantity: {{quantity}}pcs</p>
           <p>Size: {{width}} x {{height}}mm</p>
+          <p>Speed: {{speed}}</p>
           <p>Color: {{color}}</p>
           <p>Layers: {{layers}}</p>
           <p v-if="request">Custom Request: {{request}}</p>
@@ -39,11 +40,12 @@ import globals from "../globals.js";
 export default {
   data: () => ({
     boardPrice: globals.price,
-    shippingPrice: globals.price,
+    shippingPrice: globals.shippingPrice,
     orderNum: globals.orderNum,
     quantity: globals.quantity,
     width: globals.width,
     height: globals.height,
+    speed: globals.speed,
     color: globals.color,
     layers: globals.layers,
     request: globals.request
@@ -53,6 +55,12 @@ export default {
 
 <style scoped>
 p {
-  padding: 10px;
+  padding-left: 20px;
+}
+h1 {
+  color: #4caf50;
+}
+#total {
+  padding-left: 20px;
 }
 </style>

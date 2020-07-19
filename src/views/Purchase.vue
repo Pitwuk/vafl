@@ -466,7 +466,7 @@ export default {
                 axios
                   .post("http://toasterwaffles.ddns.net/api/orders/", formData)
                   .then(() => {
-                    this.$router.push({ path: "/complete" });
+                    this.$router.push({ path: "/success" });
                   });
               } catch (e) {
                 console.error(e);
