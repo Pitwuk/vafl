@@ -5,6 +5,7 @@ node_modules
 /backend/orders/images
 /backend/orders/current
 /dist
+env
 
 # local env files
 .env.local

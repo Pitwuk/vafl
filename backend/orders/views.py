@@ -19,6 +19,7 @@ import smtplib
 import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import mysql.connector
 
 
 @csrf_exempt
@@ -95,12 +96,34 @@ def create_charge(request):
 @csrf_exempt
 def order_data(request):
     if request.method == 'POST':
+        body = json.loads(request.body)
         try:
-            body = json.loads(request.body)
-            with open('./orders/current/'+body['orderNum']+'.json', 'w') as outfile:
-                json.dump(body, outfile)
-        except:
-            print('error saving order data')
+            mydb = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password=config('MYSQL_PASS'),
+                database='vafl'
+            )
+            mycursor = mydb.cursor()
+            mycursor.execute(
+                'INSERT INTO orders (orderNum, first_name, last_name, email, address, city, state, zipCode, quantity, speed, color, layers) VALUES('+str(body.values())[13:-2]+')')
+            mydb.commit()
+            mycursor.execute(
+                "SELECT * FROM orders WHERE orderNum = '"+body['orderNum']+"'")
+
+            for x in mycursor:
+                print(x)
+            print('order added to database')
+        except Exception as e:
+            print(e)
+            print('error making sql query')
+            try:
+
+                with open('./orders/current/'+body['orderNum']+'.json', 'w') as outfile:
+                    json.dump(body, outfile)
+                print('saved order to json')
+            except:
+                print('error saving order data to json')
         try:
             msg = MIMEMultipart("alternative")
             msg['Subject'] = 'VAFL PCB Order Success'
@@ -123,6 +146,7 @@ def order_data(request):
                 server.login(msg['From'], password)
                 server.sendmail(msg['From'], msg['To'], msg.as_string())
                 server.quit()
+            print('email sent')
         except Exception as e:
             print(e)
             print('error sending email')

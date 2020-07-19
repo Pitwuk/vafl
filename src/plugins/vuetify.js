@@ -12,7 +12,7 @@ export default new Vuetify({
     themes: {
       light: {
         primary: colors.brown,
-        secondary: colors.teal,
+        secondary: "#faebd7",
         accent: colors.deepOrange,
       },
     },

@@ -1,9 +1,10 @@
 <template>
+<body class="primary">
   <v-form v-model="valid">
     <v-container>
       <v-row>
         <v-col cols="8">
-          <v-card>
+          <v-card class="secondary">
             <v-card-title>
               <h2 class="display-1">Order PCB</h2>
             </v-card-title>
@@ -34,7 +35,7 @@
                 @change="onFilePicked"
               />
             </v-card-actions>
-            <v-progress-linear indeterminate color="green" v-if="loading"></v-progress-linear>
+            <v-progress-linear indeterminate color="accent" v-if="loading"></v-progress-linear>
             <v-card-text class="red--text" v-if="failed">Invalid File</v-card-text>
             <v-img id="gerber-front" contain :src="`${imageUrl}.png`" max-height="500" />
             <v-divider></v-divider>
@@ -76,12 +77,7 @@
             <v-card-text>
               <span class="subheading">Speed</span>
 
-              <v-chip-group
-                v-model="speed"
-                active-class="deep-purple--text text--accent-4"
-                mandatory
-                @change="updatePrice"
-              >
+              <v-chip-group v-model="speed" active-class="accent" mandatory @change="updatePrice">
                 <v-chip v-for="speed in speeds" :key="speed" :value="speed">
                   {{
                   speed
@@ -93,12 +89,7 @@
             <v-card-text>
               <span class="subheading">Color</span>
 
-              <v-chip-group
-                v-model="color"
-                active-class="deep-purple--text text--accent-4"
-                mandatory
-                @change="updatePrice"
-              >
+              <v-chip-group v-model="color" active-class="accent" mandatory @change="updatePrice">
                 <v-chip v-for="color in colors" :key="color" :value="color">
                   {{
                   color
@@ -110,20 +101,19 @@
             <v-card-text>
               <span class="subheading">Layers</span>
 
-              <v-chip-group
-                v-model="layers"
-                active-class="deep-purple--text text--accent-4"
-                mandatory
-                @change="updatePrice"
-              >
+              <v-chip-group v-model="layers" active-class="accent" mandatory @change="updatePrice">
                 <v-chip v-for="layers in layerOpt" :key="layers" :value="layers">{{ layers }}</v-chip>
               </v-chip-group>
+            </v-card-text>
+            <v-card-text>
+              <span class="subheading">Custom Requests</span>
+              <v-text-field v-model="request" :rules="requestRules" :counter="512">{{ quantity }}</v-text-field>
             </v-card-text>
           </v-card>
         </v-col>
 
         <v-col>
-          <v-card>
+          <v-card class="secondary">
             <v-card-title>
               <h2 class="display-1">Price</h2>
             </v-card-title>
@@ -145,6 +135,7 @@
       </v-row>
     </v-container>
   </v-form>
+</body>
 </template>
 
 <script>
@@ -155,6 +146,7 @@ export default {
   data: () => ({
     valid: false,
     price: 0,
+    price2: 0,
     imageUrl: "",
     gerber: "",
     quantity: "1",
@@ -176,6 +168,10 @@ export default {
     speeds: ["Economy", "Fast", "Turbo"],
     color: "Any",
     colors: ["White", "Blue", "Red", "Any"],
+    request: "",
+    requestRules: [
+      value => value.length <= 512 || "Can not exceed 512 characters"
+    ],
     orderNum: "",
     loading: false,
     failed: false
@@ -196,6 +192,13 @@ export default {
             pricePerCm) /
           2;
       else this.price = 250;
+      this.price2 = this.price;
+      //swaps size
+      if (this.width > 0 && this.height > 0 && this.width > this.height) {
+        var temp = this.width;
+        this.width = this.height;
+        this.height = temp;
+      }
     },
     onPickFile() {
       this.loading = true;
@@ -257,10 +260,11 @@ export default {
         globals.height = this.height;
         globals.quantity = this.quantity;
         globals.speed = this.speed;
-        globals.colors = this.colors;
+        globals.color = this.color;
         globals.layers = this.layers;
-        globals.price = this.price;
+        globals.price = this.price2;
         globals.orderNum = this.orderNum;
+        globals.request = this.request;
 
         this.$router.push("/purchase");
       }

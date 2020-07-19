@@ -5,6 +5,7 @@ var quantity = 1;
 var speed = "Economy";
 var color = "Any";
 var layers = "2";
+var request = "";
 
 //Personal Info
 var firstName = "";

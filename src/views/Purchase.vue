@@ -1,15 +1,11 @@
 <template>
   <v-stepper v-model="e1">
     <v-stepper-header>
-      <v-stepper-step :complete="e1 > 1" step="1"
-        >Shipping Information</v-stepper-step
-      >
+      <v-stepper-step :complete="e1 > 1" step="1">Shipping Information</v-stepper-step>
 
       <v-divider></v-divider>
 
-      <v-stepper-step :complete="e1 > 2" step="2"
-        >Shipping Method</v-stepper-step
-      >
+      <v-stepper-step :complete="e1 > 2" step="2">Shipping Method</v-stepper-step>
 
       <v-divider></v-divider>
 
@@ -43,30 +39,15 @@
             </v-row>
             <v-row>
               <v-col cols="12" md="8">
-                <v-text-field
-                  v-model="email"
-                  :rules="emailRules"
-                  label="E-mail"
-                  required
-                ></v-text-field>
+                <v-text-field v-model="email" :rules="emailRules" label="E-mail" required></v-text-field>
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="address"
-                  :rules="addressRules"
-                  label="Address"
-                  required
-                ></v-text-field>
+                <v-text-field v-model="address" :rules="addressRules" label="Address" required></v-text-field>
               </v-col>
               <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="city"
-                  :rules="cityRules"
-                  label="City"
-                  required
-                ></v-text-field>
+                <v-text-field v-model="city" :rules="cityRules" label="City" required></v-text-field>
               </v-col>
             </v-row>
             <v-row>
@@ -74,6 +55,7 @@
                 <v-autocomplete
                   v-model="state"
                   :items="states"
+                  :rules="stateRules"
                   label="State"
                   append-icon="mdi-city"
                 ></v-autocomplete>
@@ -91,9 +73,7 @@
           </v-container>
         </v-form>
 
-        <v-btn color="primary" @click="valid ? calculateShipping() : null"
-          >Continue</v-btn
-        >
+        <v-btn color="primary" @click="valid ? calculateShipping() : null">Continue</v-btn>
 
         <v-btn text to="/order">Cancel</v-btn>
       </v-stepper-content>
@@ -103,26 +83,18 @@
           <v-list-item-group v-model="shippingMethod" color="primary">
             <v-list-item v-for="(shippingMethod, i) in shippingRates" :key="i">
               <v-list-item-content>
-                <v-list-item-title
-                  v-text="shippingMethod.amount"
-                ></v-list-item-title>
+                <v-list-item-title v-text="shippingMethod.amount"></v-list-item-title>
               </v-list-item-content>
 
               <v-list-item-content>
-                <v-list-item-title
-                  v-text="shippingMethod.estimated_days"
-                ></v-list-item-title>
+                <v-list-item-title v-text="shippingMethod.estimated_days"></v-list-item-title>
               </v-list-item-content>
 
               <v-list-item-content>
-                <v-list-item-title
-                  v-text="shippingMethod.provider"
-                ></v-list-item-title>
+                <v-list-item-title v-text="shippingMethod.provider"></v-list-item-title>
               </v-list-item-content>
               <v-list-item-content>
-                <v-list-item-title
-                  v-text="shippingMethod.servicelevel.name"
-                ></v-list-item-title>
+                <v-list-item-title v-text="shippingMethod.servicelevel.name"></v-list-item-title>
               </v-list-item-content>
 
               <v-list-item-icon>
@@ -179,8 +151,7 @@
           color="primary"
           :disabled="stripeCheck || !valid"
           @click="valid ? createToken() : null"
-          >Submit</v-btn
-        >
+        >Submit</v-btn>
 
         <v-btn text @click="e1 = 2">Back</v-btn>
       </v-stepper-content>
@@ -199,26 +170,78 @@ export default {
     firstname: "",
     lastname: "",
     nameRules: [
-      (v) => !!v || "Name is required",
-      (v) => v.length <= 32 || "Name must be less than 32 characters",
+      v => !!v || "Name is required",
+      v => v.length <= 32 || "Name must be less than 32 characters"
     ],
     email: "",
     emailRules: [
-      (v) => !!v || "E-mail is required",
-      (v) => /.+@.+/.test(v) || "E-mail must be valid",
-      (v) => v.length <= 64 || "E-mail must be less than 64 characters",
+      v => !!v || "E-mail is required",
+      v => /.+@.+/.test(v) || "E-mail must be valid",
+      v => v.length <= 64 || "E-mail must be less than 64 characters"
     ],
     address: "",
     addressRules: [
-      (v) => !!v || "Address is required",
-      (v) => v.length <= 128 || "Address must be less than 128 characters",
+      v => !!v || "Address is required",
+      v => v.length <= 128 || "Address must be less than 128 characters"
     ],
     city: "",
     cityRules: [
-      (v) => !!v || "City is required",
-      (v) => v.length <= 32 || "City must be less than 32 characters",
+      v => !!v || "City is required",
+      v => v.length <= 32 || "City must be less than 32 characters"
     ],
     state: "",
+    stateAbrev: {
+      Arizona: "AZ",
+      Alabama: "AL",
+      Alaska: "AK",
+      Arkansas: "AR",
+      California: "CA",
+      Colorado: "CO",
+      Connecticut: "CT",
+      Delaware: "DE",
+      Florida: "FL",
+      Georgia: "GA",
+      Hawaii: "HI",
+      Idaho: "ID",
+      Illinois: "IL",
+      Indiana: "IN",
+      Iowa: "IA",
+      Kansas: "KS",
+      Kentucky: "KY",
+      Louisiana: "LA",
+      Maine: "ME",
+      Maryland: "MD",
+      Massachusetts: "MA",
+      Michigan: "MI",
+      Minnesota: "MN",
+      Mississippi: "MS",
+      Missouri: "MO",
+      Montana: "MT",
+      Nebraska: "NE",
+      Nevada: "NV",
+      "New Hampshire": "NH",
+      "New Jersey": "NJ",
+      "New Mexico": "NM",
+      "New York": "NY",
+      "North Carolina": "NC",
+      "North Dakota": "ND",
+      Ohio: "OH",
+      Oklahoma: "OK",
+      Oregon: "OR",
+      Pennsylvania: "PA",
+      "Rhode Island": "RI",
+      "South Carolina": "SC",
+      "South Dakota": "SD",
+      Tennessee: "TN",
+      Texas: "TX",
+      Utah: "UT",
+      Vermont: "VT",
+      Virginia: "VA",
+      Washington: "WA",
+      "West Virginia": "WV",
+      Wisconsin: "WI",
+      Wyoming: "WY"
+    },
     states: [
       "Alabama",
       "Alaska",
@@ -271,13 +294,14 @@ export default {
       "Washington",
       "West Virginia",
       "Wisconsin",
-      "Wyoming",
+      "Wyoming"
     ],
+    stateRules: [v => !!v || "State is required"],
     zip: "",
     zipRules: [
-      (v) => !!v || "Zip Code is required",
-      (v) => (!isNaN(v) && !v.includes(".")) || "Must be an integer value",
-      (v) => v.length == 5 || "Zip Code must be 5 digits",
+      v => !!v || "Zip Code is required",
+      v => (!isNaN(v) && !v.includes(".")) || "Must be an integer value",
+      v => v.length == 5 || "Zip Code must be 5 digits"
     ],
     shippingRates: [],
     shippingMethod: 0,
@@ -286,25 +310,25 @@ export default {
     card: {
       number: "",
       cvc: "",
-      exp: "",
+      exp: ""
     },
     cardRules: [
-      (v) => !!v || "Card Number is required",
-      (v) => window.Stripe.validateCardNumber(v) || "Must be a valid card",
-      (v) => v.length == 19 || "Card number must be 16 digits",
+      v => !!v || "Card Number is required",
+      v => window.Stripe.validateCardNumber(v) || "Must be a valid card",
+      v => v.length == 19 || "Card number must be 16 digits"
     ],
     cvcRules: [
-      (v) => !!v || "Card Verification Code is required",
-      (v) =>
+      v => !!v || "Card Verification Code is required",
+      v =>
         window.Stripe.validateCVC(v) || "Card Verification Code must be valid",
-      (v) => v.length == 3 || "Card Verification Code must be 3 digits",
+      v => v.length == 3 || "Card Verification Code must be 3 digits"
     ],
     dateRules: [
-      (v) => !!v || "Expiration date is required",
-      (v) => window.Stripe.validateExpiry(v) || "Expiration date must be valid",
-      (v) => v.length == 5 || "Expiration date must be 4 digits",
+      v => !!v || "Expiration date is required",
+      v => window.Stripe.validateExpiry(v) || "Expiration date must be valid",
+      v => v.length == 5 || "Expiration date must be 4 digits"
     ],
-    stripeCheck: false,
+    stripeCheck: false
   }),
   methods: {
     async calculateShipping() {
@@ -318,7 +342,7 @@ export default {
         city: "Fort Gratiot",
         state: "MI",
         zip: "48059",
-        country: "US",
+        country: "US"
       };
       var addressTo = {
         name: this.firstname + this.lastname,
@@ -327,7 +351,7 @@ export default {
         state: this.state,
         zip: this.zip,
         country: "US",
-        email: this.email,
+        email: this.email
       };
       var parcel = {
         template: null,
@@ -345,14 +369,14 @@ export default {
           .toString(),
         mass_unit: "oz",
         extra: {},
-        test: true,
+        test: true
       };
       const shipment = await shippo.shipment.create(
         {
           address_from: addressFrom,
           address_to: addressTo,
           parcels: [parcel],
-          async: true,
+          async: true
         },
         function(err, shipment) {
           if (err) {
@@ -398,8 +422,7 @@ export default {
           const payload = {
             token: response.id,
             orderNum: globals.orderNum,
-            price:
-              parseFloat(globals.price) + parseFloat(globals.shippingPrice),
+            price: parseFloat(globals.price) + parseFloat(globals.shippingPrice)
           };
           axios
             .post("http://toasterwaffles.ddns.net/api/charge/", payload)
@@ -410,17 +433,17 @@ export default {
                 //form data
                 const formData = {
                   orderNum: globals.orderNum,
-                  first: this.firstName,
-                  last: this.lastName,
+                  first_name: this.firstname,
+                  last_name: this.lastname,
                   email: this.email,
                   address: this.address,
                   city: this.city,
-                  state: this.state,
+                  state: this.stateAbrev[this.state],
                   zipCode: this.zip,
                   quantity: globals.quantity,
                   speed: globals.speed,
                   color: globals.color,
-                  layers: globals.layers,
+                  layers: globals.layers
                 };
 
                 //http file post
@@ -437,14 +460,14 @@ export default {
                 this.failed = true;
               }
             })
-            .catch((error) => {
+            .catch(error => {
               console.error(error);
             });
         }
       });
-    },
+    }
   },
-  directives: { mask },
+  directives: { mask }
 };
 </script>
 
