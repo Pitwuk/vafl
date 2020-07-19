@@ -106,7 +106,8 @@ def order_data(request):
             )
             mycursor = mydb.cursor()
             mycursor.execute(
-                'INSERT INTO orders (orderNum, first_name, last_name, email, address, city, state, zipCode, quantity, speed, color, layers) VALUES('+str(body.values())[13:-2]+')')
+                'INSERT INTO orders (orderNum, first_name, last_name, email, address, city, state, zipCode, quantity, speed, color, layers, request, status) VALUES('+str(body.values())[13:-2]+',\'Placed\')')
+
             mydb.commit()
             mycursor.execute(
                 "SELECT * FROM orders WHERE orderNum = '"+body['orderNum']+"'")

@@ -157,10 +157,17 @@ export default {
     ],
     width: "0",
     height: "0",
-    sizeRules: [
+    widthRules: [
       value => !!value || "Required",
       value => !isNaN(value) || "Must be a number",
-      value => value > 0 || "Must be greater than 0"
+      value => value > 0 || "Must be greater than 0",
+      value => value <= 215 || "Maximum width is 215 mm"
+    ],
+    heightRules: [
+      value => !!value || "Required",
+      value => !isNaN(value) || "Must be a number",
+      value => value > 0 || "Must be greater than 0",
+      value => value <= 279 || "Maximum height is 279 mm"
     ],
     layers: "2",
     layerOpt: ["1", "2"],

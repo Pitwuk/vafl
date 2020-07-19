@@ -83,7 +83,7 @@
           <v-list-item-group v-model="shippingMethod" color="primary">
             <v-list-item v-for="(shippingMethod, i) in shippingRates" :key="i">
               <v-list-item-content>
-                <v-list-item-title v-text="shippingMethod.amount"></v-list-item-title>
+                <v-list-item-title v-text="[...shippingMethod.amount][0]"></v-list-item-title>
               </v-list-item-content>
 
               <v-list-item-content>
@@ -353,13 +353,34 @@ export default {
         country: "US",
         email: this.email
       };
+
+      //calculate layers thick in envelope
+      var layers = 0;
+      var big = false;
+      //4x8 envelope
+      if (globals.height <= 203.2 && globals.width <= 101.6) {
+        layers = globals.quantity / Math.floor(203.2 / globals.height);
+        globals.quantity / Math.floor(101.6 / globals.width) > layers
+          ? (layers = globals.quantity / Math.floor(101.6 / globals.width))
+          : null;
+        layers = Math.floor(layers) + 1;
+      }
+
+      if (layers == 0 || layers > 11) {
+        //8.5x12 envelope
+        var layers = globals.quantity / Math.floor(304.8 / globals.height);
+        globals.quantity / Math.floor(215.9 / globals.width) > layers
+          ? (layers = globals.quantity / Math.floor(215.9 / globals.width))
+          : null;
+        layers = Math.floor(layers) + 1;
+        big = true;
+      }
+
       var parcel = {
         template: null,
-        length: ((globals.height * globals.quantity) / 10)
-          .toFixed(4)
-          .toString(),
-        width: ((globals.width * globals.quantity) / 10).toFixed(4).toString(),
-        height: "0.16",
+        length: (big ? 30.48 : 20.32).toString(),
+        width: (big ? 21.59 : 10.16).toString(),
+        height: 0.16 * layers.toFixed(4).toString(),
         distance_unit: "cm",
         weight: (
           ((globals.width * globals.height * globals.quantity) / 10) *
@@ -411,14 +432,6 @@ export default {
         } else {
           const axios = require("axios");
 
-          globals.orderNum =
-            Math.random()
-              .toString(36)
-              .substring(2, 10) +
-            Math.random()
-              .toString(36)
-              .substring(2, 10);
-          globals.price = 20.99; //used in development DELETE AFTER
           const payload = {
             token: response.id,
             orderNum: globals.orderNum,
@@ -443,7 +456,8 @@ export default {
                   quantity: globals.quantity,
                   speed: globals.speed,
                   color: globals.color,
-                  layers: globals.layers
+                  layers: globals.layers,
+                  request: globals.request
                 };
 
                 //http file post
