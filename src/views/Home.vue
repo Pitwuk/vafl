@@ -1,18 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar max-height="70" elevate-on-scroll dark color="primary">
-      <v-spacer />
-      <img src="../assets/logo.png" height="50" />
-      <v-spacer />
-      <v-toolbar-items>
-        <v-btn icon to="/cart">
-          <v-icon>mdi-cart</v-icon>
-        </v-btn>
-        <v-btn icon to="/login">
-          <v-icon>mdi-account</v-icon>
-        </v-btn>
-      </v-toolbar-items>
-    </v-app-bar>
+    <Appbar />
     <v-carousel cycle interval="6000" hide-delimiters>
       <v-carousel-item v-for="(item,i) in items" :key="i" :src="item.src">
         <p class="display-2">{{ slideText[i] }}</p>
@@ -25,6 +13,7 @@
 </template>
 
 <script>
+import Appbar from "../components/Appbar.vue";
 export default {
   data() {
     return {
@@ -45,7 +34,8 @@ export default {
         "• $2 / board (size ≤ 50 x 50mm)\n• Free Shipping on orders over $10"
       ]
     };
-  }
+  },
+  components: { Appbar }
 };
 </script>
 

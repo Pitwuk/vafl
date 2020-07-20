@@ -1,9 +1,10 @@
 <template>
-<body class="primary">
+<body class="secondary">
+  <Appbar />
   <v-container v-if="!quantity">
     <v-row align="center" justify="center">
       <v-col cols="12" sm="8" md="4">
-        <v-card class="elevation-12">
+        <v-card class="elevation-12 tertiary">
           <v-toolbar color="primary" dark elevation="0">
             <v-toolbar-title>Status</v-toolbar-title>
           </v-toolbar>
@@ -67,6 +68,7 @@
 </template>
 
 <script>
+import Appbar from "../components/Appbar.vue";
 import globals from "../globals.js";
 //test order num: gc6iu5sg99m6zopq
 export default {
@@ -120,7 +122,8 @@ export default {
         this.failed = true;
       }
     }
-  }
+  },
+  components: { Appbar }
 };
 </script>
 

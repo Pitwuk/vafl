@@ -1,5 +1,6 @@
 <template>
 <body class="secondary">
+  <Appbar />
   <v-form v-model="valid">
     <v-container>
       <v-row>
@@ -174,7 +175,9 @@
 </template>
 
 <script>
+import Appbar from "../components/Appbar.vue";
 import globals from "../globals.js";
+
 var pricePerCm = 0.1;
 var sale = 1; //(.9 = 10% off)
 
@@ -320,6 +323,7 @@ export default {
         this.$router.push("/purchase");
       }
     }
-  }
+  },
+  components: { Appbar }
 };
 </script>

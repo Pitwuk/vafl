@@ -1,5 +1,6 @@
 <template>
 <body class="secondary">
+  <Appbar />
   <div align="center">
     <v-icon size="200" color="green">mdi-checkbox-marked-circle-outline</v-icon>
     <h1>Order Successfully Placed</h1>
@@ -36,6 +37,7 @@
 </template>
 
 <script>
+import Appbar from "../components/Appbar.vue";
 import globals from "../globals.js";
 export default {
   data: () => ({
@@ -49,7 +51,8 @@ export default {
     color: globals.color,
     layers: globals.layers,
     request: globals.request
-  })
+  }),
+  components: { Appbar }
 };
 </script>
 
