@@ -39,6 +39,16 @@ export default new Router({
       component: () => import("./views/About.vue"),
     },
     {
+      path: "/capabilities",
+      name: "capabilities",
+      component: () => import("./views/Capabilities.vue"),
+    },
+    {
+      path: "/support",
+      name: "support",
+      component: () => import("./views/Support.vue"),
+    },
+    {
       path: "/cart",
       name: "cart",
       component: () => import("./views/Cart.vue"),
