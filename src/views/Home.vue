@@ -2,7 +2,7 @@
   <v-app>
     <v-app-bar max-height="70" elevate-on-scroll dark color="primary">
       <v-spacer />
-      <h1 class="primary">VAFL</h1>
+      <img src="../assets/logo.png" height="50" />
       <v-spacer />
       <v-toolbar-items>
         <v-btn icon to="/cart">
@@ -21,8 +21,6 @@
         </div>
       </v-carousel-item>
     </v-carousel>
-
-    <v-spacer />
   </v-app>
 </template>
 
