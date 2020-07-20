@@ -1,18 +1,24 @@
 <template>
   <v-stepper v-model="e1">
-    <v-stepper-header>
-      <v-stepper-step :complete="e1 > 1" step="1">Shipping Information</v-stepper-step>
+    <v-stepper-header class="primary">
+      <v-stepper-step :complete="e1 > 1" step="1">
+        <span style="color:white">Shipping Information</span>
+      </v-stepper-step>
 
-      <v-divider></v-divider>
+      <v-divider color="grey"></v-divider>
 
-      <v-stepper-step :complete="e1 > 2" step="2">Shipping Method</v-stepper-step>
+      <v-stepper-step :complete="e1 > 2" step="2">
+        <span style="color:white">Shipping Method</span>
+      </v-stepper-step>
 
-      <v-divider></v-divider>
+      <v-divider color="grey"></v-divider>
 
-      <v-stepper-step step="3">Billing</v-stepper-step>
+      <v-stepper-step color="grey" step="3">
+        <span style="color:white">Billing</span>
+      </v-stepper-step>
     </v-stepper-header>
 
-    <v-stepper-items>
+    <v-stepper-items class="tertiary">
       <v-stepper-content step="1">
         <v-form v-model="valid">
           <v-container>
@@ -79,6 +85,7 @@
       </v-stepper-content>
 
       <v-stepper-content step="2">
+        <v-progress-circular indeterminate color="accent" v-if="loading"></v-progress-circular>
         <v-list>
           <v-list-item-group v-model="shippingMethod" color="primary">
             <v-list-item v-for="(shippingMethod, i) in shippingRates" :key="i">
@@ -147,6 +154,7 @@
             </v-row>
           </v-container>
         </v-form>
+        <v-progress-circular indeterminate color="accent" v-if="loading"></v-progress-circular>
         <v-btn
           color="primary"
           :disabled="stripeCheck || !valid"
@@ -167,6 +175,7 @@ export default {
   data: () => ({
     e1: 1,
     valid: false,
+    loading: false,
     firstname: "",
     lastname: "",
     nameRules: [
@@ -334,6 +343,7 @@ export default {
     async calculateShipping() {
       this.e1 = 2;
       this.valid = false;
+      this.loading = true;
 
       var shippo = require("shippo")(process.env.VUE_APP_SHIPPO_SECRET_KEY);
       var addressFrom = {
@@ -405,6 +415,7 @@ export default {
       this.shippingRates.sort(this.sortShippingRates);
     },
     sortShippingRates(a, b) {
+      this.loading = false;
       if (parseFloat(a.amount) > parseFloat(b.amount)) return 1;
       if (parseFloat(b.amount) > parseFloat(a.amount)) return -1;
 
@@ -417,6 +428,7 @@ export default {
         this.shippingRates[this.shippingMethod].amount + this.boardPrice;
     },
     createToken() {
+      this.loading = true;
       this.stripeCheck = true;
       window.Stripe.setPublishableKey(process.env.VUE_APP_STRIPE_PUB_KEY);
       window.Stripe.createToken(this.card, (status, response) => {
@@ -466,7 +478,6 @@ export default {
                   });
               } catch (e) {
                 console.error(e);
-                this.loading = false;
                 this.failed = true;
               }
             })
@@ -481,4 +492,5 @@ export default {
 };
 </script>
 
-<style></style>
+<style scoped>
+</style>
