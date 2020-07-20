@@ -1,5 +1,5 @@
 <template>
-<body class="primary">
+<body class="secondary">
   <div align="center">
     <v-icon size="200" color="green">mdi-checkbox-marked-circle-outline</v-icon>
     <h1>Order Successfully Placed</h1>
@@ -7,7 +7,7 @@
   <v-container>
     <v-row>
       <v-col cols="12" md="6">
-        <v-card class="secondary">
+        <v-card class="tertiary">
           <h3 align="center">Order Summary:</h3>
           <p>Boards: ${{boardPrice.toFixed(2)}}</p>
           <p>Shipping: ${{shippingPrice}}</p>
@@ -15,7 +15,7 @@
         </v-card>
       </v-col>
       <v-col cols="12" md="6">
-        <v-card class="secondary">
+        <v-card class="tertiary">
           <h3 align="center">Details:</h3>
           <v-img
             contain

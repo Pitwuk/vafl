@@ -1,10 +1,10 @@
 <template>
-<body class="primary">
+<body class="secondary">
   <v-form v-model="valid">
     <v-container>
       <v-row>
         <v-col cols="8">
-          <v-card class="secondary">
+          <v-card class="tertiary">
             <v-card-title>
               <h2 class="display-1">Order PCB</h2>
             </v-card-title>
@@ -45,7 +45,7 @@
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="width"
-                    :rules="sizeRules"
+                    :rules="widthRules"
                     label="Width (mm)"
                     required
                     @change="updatePrice"
@@ -55,7 +55,7 @@
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="height"
-                    :rules="sizeRules"
+                    :rules="heightRules"
                     label="Height (mm)"
                     required
                     @change="updatePrice"
@@ -78,11 +78,18 @@
               <span class="subheading">Speed</span>
 
               <v-chip-group v-model="speed" active-class="accent" mandatory @change="updatePrice">
-                <v-chip v-for="speed in speeds" :key="speed" :value="speed">
-                  {{
-                  speed
-                  }}
-                </v-chip>
+                <v-tooltip top v-for="speed in speeds" :key="speed">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-chip v-bind="attrs" v-on="on" :value="speed">
+                      {{
+                      speed
+                      }}
+                    </v-chip>
+                  </template>
+                  <span v-if="speed=='Economy'">Ships in &#60; 10 days</span>
+                  <span v-if="speed=='Fast'">Ships in &#60; 24 hours</span>
+                  <span v-if="speed=='Turbo'">Ships in &#60; 3 hours</span>
+                </v-tooltip>
               </v-chip-group>
             </v-card-text>
 
@@ -90,18 +97,29 @@
               <span class="subheading">Color</span>
 
               <v-chip-group v-model="color" active-class="accent" mandatory @change="updatePrice">
-                <v-chip v-for="color in colors" :key="color" :value="color">
-                  {{
-                  color
-                  }}
-                </v-chip>
+                <v-tooltip
+                  top
+                  :disabled="color=='Any' || speed =='Turbo'"
+                  v-for="color in colors"
+                  :key="color"
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-chip v-bind="attrs" v-on="on" :value="color">
+                      {{
+                      color
+                      }}
+                    </v-chip>
+                  </template>
+                  <span v-if="speed == 'Economy'">+$2</span>
+                  <span v-if="speed == 'Fast'">+$4</span>
+                </v-tooltip>
               </v-chip-group>
             </v-card-text>
 
             <v-card-text>
               <span class="subheading">Layers</span>
 
-              <v-chip-group v-model="layers" active-class="accent" mandatory @change="updatePrice">
+              <v-chip-group v-model="layers" active-class="accent" mandatory>
                 <v-chip v-for="layers in layerOpt" :key="layers" :value="layers">{{ layers }}</v-chip>
               </v-chip-group>
             </v-card-text>
@@ -113,13 +131,30 @@
         </v-col>
 
         <v-col>
-          <v-card class="secondary">
+          <v-card class="tertiary">
             <v-card-title>
               <h2 class="display-1">Price</h2>
             </v-card-title>
             <v-divider></v-divider>
             <v-card-text>
-              <span class="title" v-text="'$' + price.toFixed(2).toString()"></span>
+              <span
+                class="title"
+                v-text="'$' + price.toFixed(2).toString()"
+                :style="(salePrice!=0 ? 'text-decoration: line-through': null)"
+              ></span>
+              <span
+                class="title"
+                v-text="' '+ Math.round((1-(salePrice/price))*100)+'% off'"
+                v-if="salePrice"
+              ></span>
+              <br />
+
+              <span
+                class="title"
+                style="color: red"
+                v-text="'$' + salePrice.toFixed(2).toString()"
+                v-if="salePrice"
+              ></span>
             </v-card-text>
 
             <v-card-actions>
@@ -140,13 +175,15 @@
 
 <script>
 import globals from "../globals.js";
-var pricePerCm = 0.3;
+var pricePerCm = 0.1;
+var sale = 1; //(.9 = 10% off)
 
 export default {
   data: () => ({
     valid: false,
     price: 0,
     price2: 0,
+    salePrice: 0,
     imageUrl: "",
     gerber: "",
     quantity: "1",
@@ -185,27 +222,34 @@ export default {
   }),
   methods: {
     updatePrice() {
-      if (this.speed == "Fast")
-        this.price =
-          parseInt(this.quantity) *
-          parseFloat(this.width / 10) *
-          parseFloat(this.height / 10) *
-          pricePerCm;
-      else if (this.speed == "Economy")
-        this.price =
-          (parseInt(this.quantity) *
-            parseFloat(this.width / 10) *
-            parseFloat(this.height / 10) *
-            pricePerCm) /
-          2;
-      else this.price = 250;
-      this.price2 = this.price;
       //swaps size
       if (this.width > 0 && this.height > 0 && this.width > this.height) {
         var temp = this.width;
         this.width = this.height;
         this.height = temp;
       }
+      if (this.width > 50 || this.height > 50)
+        this.price =
+          parseInt(this.quantity) *
+          parseFloat(this.width / 10) *
+          parseFloat(this.height / 10) *
+          pricePerCm;
+      else this.price = 2 * this.quantity;
+      if (this.speed == "Fast") this.price *= 2;
+      else if (this.speed == "Turbo") {
+        var panels = this.quantity / Math.floor(279.4 / this.height);
+        panels /= Math.floor(215.9 / this.width);
+        panels = Math.floor(panels) + 1;
+        this.price = 250 * panels;
+      }
+      if (this.color != "Any") {
+        if (this.speed == "Economy") this.price += 2;
+        else if (this.speed == "Fast") this.price += 4;
+      }
+      if (sale != 1) {
+        this.salePrice = this.price * sale;
+        this.price2 = this.salePrice;
+      } else this.price2 = this.price;
     },
     onPickFile() {
       this.loading = true;

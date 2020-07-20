@@ -360,18 +360,14 @@ export default {
       //4x8 envelope
       if (globals.height <= 203.2 && globals.width <= 101.6) {
         layers = globals.quantity / Math.floor(203.2 / globals.height);
-        globals.quantity / Math.floor(101.6 / globals.width) > layers
-          ? (layers = globals.quantity / Math.floor(101.6 / globals.width))
-          : null;
+        layers / Math.floor(101.6 / globals.width);
         layers = Math.floor(layers) + 1;
       }
 
       if (layers == 0 || layers > 11) {
         //8.5x12 envelope
         layers = globals.quantity / Math.floor(304.8 / globals.height);
-        globals.quantity / Math.floor(215.9 / globals.width) > layers
-          ? (layers = globals.quantity / Math.floor(215.9 / globals.width))
-          : null;
+        layers / Math.floor(215.9 / globals.width);
         layers = Math.floor(layers) + 1;
         big = true;
       }

@@ -10,7 +10,7 @@
 
             <v-card-text>
               <v-form>
-                <v-text-field v-model="login" label="Username" prepend-icon="mdi-face" />
+                <v-text-field v-model="login" label="Username" prepend-icon="mdi-account" />
                 <v-text-field
                   v-model="password"
                   label="Password"
