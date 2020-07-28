@@ -9,11 +9,13 @@
         </div>
       </v-carousel-item>
     </v-carousel>
+    <Bottom />
   </v-app>
 </template>
 
 <script>
 import Appbar from "../components/Appbar.vue";
+import Bottom from "../components/Bottom.vue";
 export default {
   data() {
     return {
@@ -35,7 +37,7 @@ export default {
       ]
     };
   },
-  components: { Appbar }
+  components: { Appbar, Bottom }
 };
 </script>
 

@@ -6,6 +6,7 @@ node_modules
 /backend/orders/current
 /dist
 env
+cert
 
 # local env files
 .env.local
