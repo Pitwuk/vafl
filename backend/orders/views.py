@@ -9,9 +9,9 @@ import base64
 import os
 import shutil
 from PIL import Image
-from gerber import PCB
-from gerber.render import theme
-from gerber.render.cairo_backend import GerberCairoContext
+from gerber_renderer import renderer
+from svglib.svglib import svg2rlg
+from reportlab.graphics import renderPM
 import stripe
 from decouple import config
 from .models import Order
@@ -32,39 +32,45 @@ def files(request):
             orderNum = request.POST['orderNum'] + '.zip'
             fs = FileSystemStorage(location='./orders/gerbers/')
             fs.save(orderNum, uploaded_file)
-            # extract gerber files
-            with zipfile.ZipFile('./orders/gerbers/'+orderNum, 'r') as zip_ref:
-                zip_ref.extractall('./orders/gerbers/'+orderNum[:-4])
-            # create pngs of board
-            gctx = GerberCairoContext()
-            pcb = PCB.from_directory('./orders/gerbers/'+orderNum[:-4])
-            gctx.render_layers(pcb.top_layers,
-                               './orders/gerbers/'+orderNum[:-4] + '/top.png',
-                               theme.THEMES['default'], verbose=True)
-            gctx.render_layers(pcb.bottom_layers,
-                               './orders/gerbers/' +
-                               orderNum[:-4] + '/bottom.png',
-                               theme.THEMES['default'], verbose=True)
+            
+            #render board svgs
+            board = renderer.Gerber('./orders/gerbers/'+orderNum, verbose=True)
 
-            # splice images together
-            concatenate_pcb(orderNum).save(
+            #get board dimensions
+            width = board.get_dimensions()[0]
+            height = board.get_dimensions()[1]
+
+            # # stack svgs
+            # combined = sg.fromfile('./gerber_files/top.svg')
+            # bottom = sg.fromfile('./gerber_files/bottom.svg').getroot()
+            # #move bottom
+            # if(width <= height*2):
+            #     bottom.moveto(width*board.get_dimensions()[2], 0)
+            # else:
+            #     bottom.moveto(0, height*board.get_dimensions()[2])
+            # combined.append(bottom)
+            # combined.save('./orders/images/'+orderNum[:-4] + '.svg')
+
+            #convert to png
+            drawing = svg2rlg('./gerber_files/top.svg')
+            renderPM.drawToFile(drawing, './gerber_files/top.png', fmt="PNG")
+            drawing = svg2rlg('./gerber_files/bottom.svg')
+            renderPM.drawToFile(drawing, './gerber_files/bottom.png', fmt="PNG")
+
+            #combine pngs
+            concatenate_pcb().save(
                 './orders/images/'+orderNum[:-4] + '.png')
-            shutil.rmtree('./orders/gerbers/'+orderNum[:-4])
-
-            # get board size
-            width = pcb.board_bounds[0][1]
-            height = pcb.board_bounds[1][1]
+            shutil.rmtree('./gerber_files')
 
             return JsonResponse({'width': width, 'height': height})
         else:
             return HttpResponse(status=400)
 
-
-def concatenate_pcb(orderNum):
+def concatenate_pcb():
     # splice images together
-    top = Image.open('./orders/gerbers/'+orderNum[:-4] + '/top.png')
-    bottom = Image.open('./orders/gerbers/'+orderNum[:-4] + '/bottom.png')
-    if top.width <= top.height:
+    top = Image.open('./gerber_files/top.png')
+    bottom = Image.open('./gerber_files/bottom.png')
+    if top.width <= top.height*2:
         combined = Image.new('RGB', (top.width + bottom.width, top.height))
         combined.paste(top, (0, 0))
         combined.paste(bottom, (top.width, 0))
@@ -73,7 +79,6 @@ def concatenate_pcb(orderNum):
         combined.paste(top, (0, 0))
         combined.paste(bottom, (0, top.height))
     return combined
-
 
 @csrf_exempt
 def create_charge(request):
@@ -118,13 +123,6 @@ def order_data(request):
         except Exception as e:
             print(e)
             print('error making sql query')
-            try:
-
-                with open('./orders/current/'+body['orderNum']+'.json', 'w') as outfile:
-                    json.dump(body, outfile)
-                print('saved order to json')
-            except:
-                print('error saving order data to json')
         try:
             msg = MIMEMultipart("alternative")
             msg['Subject'] = 'VAFL PCB Order Success'

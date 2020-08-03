@@ -10,10 +10,7 @@
               <h2 class="display-1">Order PCB</h2>
             </v-card-title>
 
-            <v-card-text>
-              Please upload your Gerber files and select your
-              options.
-            </v-card-text>
+            <v-card-text>Please upload your Gerber files and select your options.</v-card-text>
 
             <v-divider></v-divider>
 
@@ -81,15 +78,11 @@
               <v-chip-group v-model="speed" active-class="accent" mandatory @change="updatePrice">
                 <v-tooltip top v-for="speed in speeds" :key="speed">
                   <template v-slot:activator="{ on, attrs }">
-                    <v-chip v-bind="attrs" v-on="on" :value="speed">
-                      {{
-                      speed
-                      }}
-                    </v-chip>
+                    <v-chip v-bind="attrs" v-on="on" :value="speed">{{ speed }}</v-chip>
                   </template>
-                  <span v-if="speed=='Economy'">Ships in &#60; 10 days</span>
-                  <span v-if="speed=='Fast'">Ships in &#60; 24 hours</span>
-                  <span v-if="speed=='Turbo'">Ships in &#60; 3 hours</span>
+                  <span v-if="speed == 'Economy'">Ships in &#60; 10 days</span>
+                  <span v-if="speed == 'Fast'">Ships in &#60; 24 hours</span>
+                  <span v-if="speed == 'Turbo'">Ships in &#60; 3 hours</span>
                 </v-tooltip>
               </v-chip-group>
             </v-card-text>
@@ -100,16 +93,12 @@
               <v-chip-group v-model="color" active-class="accent" mandatory @change="updatePrice">
                 <v-tooltip
                   top
-                  :disabled="color=='Any' || speed =='Turbo'"
+                  :disabled="color == 'Any' || speed == 'Turbo'"
                   v-for="color in colors"
                   :key="color"
                 >
                   <template v-slot:activator="{ on, attrs }">
-                    <v-chip v-bind="attrs" v-on="on" :value="color">
-                      {{
-                      color
-                      }}
-                    </v-chip>
+                    <v-chip v-bind="attrs" v-on="on" :value="color">{{ color }}</v-chip>
                   </template>
                   <span v-if="speed == 'Economy'">+$2</span>
                   <span v-if="speed == 'Fast'">+$4</span>
@@ -141,11 +130,15 @@
               <span
                 class="title"
                 v-text="'$' + price.toFixed(2).toString()"
-                :style="(salePrice!=0 ? 'text-decoration: line-through': null)"
+                :style="
+                    salePrice != 0 ? 'text-decoration: line-through' : null
+                  "
               ></span>
               <span
                 class="title"
-                v-text="' '+ Math.round((1-(salePrice/price))*100)+'% off'"
+                v-text="
+                    ' ' + Math.round((1 - salePrice / price) * 100) + '% off'
+                  "
                 v-if="salePrice"
               ></span>
               <br />
@@ -191,23 +184,23 @@ export default {
     gerber: "",
     quantity: "1",
     quantRules: [
-      value => !!value || "Required",
-      value =>
-        (!isNaN(value) && !value.includes(".")) || "Must be an integer value"
+      (value) => !!value || "Required",
+      (value) =>
+        (!isNaN(value) && !value.includes(".")) || "Must be an integer value",
     ],
     width: "0",
     height: "0",
     widthRules: [
-      value => !!value || "Required",
-      value => !isNaN(value) || "Must be a number",
-      value => value > 0 || "Must be greater than 0",
-      value => value <= 215 || "Maximum width is 215 mm"
+      (value) => !!value || "Required",
+      (value) => !isNaN(value) || "Must be a number",
+      (value) => value > 0 || "Must be greater than 0",
+      (value) => value <= 215 || "Maximum width is 215 mm",
     ],
     heightRules: [
-      value => !!value || "Required",
-      value => !isNaN(value) || "Must be a number",
-      value => value > 0 || "Must be greater than 0",
-      value => value <= 279 || "Maximum height is 279 mm"
+      (value) => !!value || "Required",
+      (value) => !isNaN(value) || "Must be a number",
+      (value) => value > 0 || "Must be greater than 0",
+      (value) => value <= 279 || "Maximum height is 279 mm",
     ],
     layers: "2",
     layerOpt: ["1", "2"],
@@ -217,11 +210,11 @@ export default {
     colors: ["White", "Blue", "Red", "Any"],
     request: "",
     requestRules: [
-      value => value.length <= 512 || "Can not exceed 512 characters"
+      (value) => value.length <= 512 || "Can not exceed 512 characters",
     ],
     orderNum: "",
     loading: false,
-    failed: false
+    failed: false,
   }),
   methods: {
     updatePrice() {
@@ -270,12 +263,8 @@ export default {
         }
         //generate order number
         this.orderNum =
-          Math.random()
-            .toString(36)
-            .substring(2, 10) +
-          Math.random()
-            .toString(36)
-            .substring(2, 10);
+          Math.random().toString(36).substring(2, 10) +
+          Math.random().toString(36).substring(2, 10);
 
         //form data
         var formData = new FormData();
@@ -290,8 +279,8 @@ export default {
           formData,
           {
             headers: {
-              "Content-Type": "multipart/form-data"
-            }
+              "Content-Type": "multipart/form-data",
+            },
           }
         );
 
@@ -322,8 +311,8 @@ export default {
 
         this.$router.push("/purchase");
       }
-    }
+    },
   },
-  components: { Appbar }
+  components: { Appbar },
 };
 </script>
