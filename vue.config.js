@@ -2,6 +2,5 @@ const fs = require("fs");
 
 module.exports = {
   transpileDependencies: ["vuetify"],
-  devServer: {
-  },
+  devServer: {},
 };

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from decouple import config
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,12 +21,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '2$44yz&#*@ta3yt=6)91=6o2p9w6md(bxjn2=s7=$0g(mz_%5s'
+SECRET_KEY = config('DJANGO_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['toasterwaffles.ddns.net', 'api.vaflpcb.com']
+ALLOWED_HOSTS = ['htttps://api.vaflpcb.com', 'api.vaflpcb.com']
 
 
 # Application definition
@@ -126,5 +127,18 @@ MEDIA_URL = '/images/'
 MEDIA_ROOT = 'orders/images/'
 
 STATIC_URL = '/static/'
+# STATIC_ROOT='static/'
+STATICFILES_DIRS = (
+os.path.join(BASE_DIR, 'static'),
+)
 
+#CORS_ORIGIN_WHITELIST = ['https://www.vaflpcb.com', 'https://vaflpcb.com']
 CORS_ORIGIN_ALLOW_ALL = True
+
+CSRF_COOKIE_SECURE = True
+SECURE_REFERRER_POLICY = 'origin'
+SECURE_HSTS_SECONDS = 31536000
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
