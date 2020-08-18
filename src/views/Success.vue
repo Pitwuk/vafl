@@ -18,11 +18,7 @@
       <v-col cols="12" md="6">
         <v-card class="tertiary">
           <h3 align="center">Details:</h3>
-          <v-img
-            contain
-            :src="'http://toasterwaffles.ddns.net/images/'+orderNum+'.png'"
-            max-height="500"
-          />
+          <v-img contain :src="'https://vaflpcb.com/api/images/'+orderNum+'.png'" max-height="500" />
           <p>Quantity: {{quantity}}pcs</p>
           <p>Size: {{width}} x {{height}}mm</p>
           <p>Speed: {{speed}}</p>
@@ -50,9 +46,9 @@ export default {
     speed: globals.speed,
     color: globals.color,
     layers: globals.layers,
-    request: globals.request
+    request: globals.request,
   }),
-  components: { Appbar }
+  components: { Appbar },
 };
 </script>
 

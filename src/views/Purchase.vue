@@ -179,24 +179,24 @@ export default {
     firstname: "",
     lastname: "",
     nameRules: [
-      v => !!v || "Name is required",
-      v => v.length <= 32 || "Name must be less than 32 characters"
+      (v) => !!v || "Name is required",
+      (v) => v.length <= 32 || "Name must be less than 32 characters",
     ],
     email: "",
     emailRules: [
-      v => !!v || "E-mail is required",
-      v => /.+@.+/.test(v) || "E-mail must be valid",
-      v => v.length <= 64 || "E-mail must be less than 64 characters"
+      (v) => !!v || "E-mail is required",
+      (v) => /.+@.+/.test(v) || "E-mail must be valid",
+      (v) => v.length <= 64 || "E-mail must be less than 64 characters",
     ],
     address: "",
     addressRules: [
-      v => !!v || "Address is required",
-      v => v.length <= 128 || "Address must be less than 128 characters"
+      (v) => !!v || "Address is required",
+      (v) => v.length <= 128 || "Address must be less than 128 characters",
     ],
     city: "",
     cityRules: [
-      v => !!v || "City is required",
-      v => v.length <= 32 || "City must be less than 32 characters"
+      (v) => !!v || "City is required",
+      (v) => v.length <= 32 || "City must be less than 32 characters",
     ],
     state: "",
     stateAbrev: {
@@ -249,7 +249,7 @@ export default {
       Washington: "WA",
       "West Virginia": "WV",
       Wisconsin: "WI",
-      Wyoming: "WY"
+      Wyoming: "WY",
     },
     states: [
       "Alabama",
@@ -303,14 +303,14 @@ export default {
       "Washington",
       "West Virginia",
       "Wisconsin",
-      "Wyoming"
+      "Wyoming",
     ],
-    stateRules: [v => !!v || "State is required"],
+    stateRules: [(v) => !!v || "State is required"],
     zip: "",
     zipRules: [
-      v => !!v || "Zip Code is required",
-      v => (!isNaN(v) && !v.includes(".")) || "Must be an integer value",
-      v => v.length == 5 || "Zip Code must be 5 digits"
+      (v) => !!v || "Zip Code is required",
+      (v) => (!isNaN(v) && !v.includes(".")) || "Must be an integer value",
+      (v) => v.length == 5 || "Zip Code must be 5 digits",
     ],
     shippingRates: [],
     shippingMethod: 0,
@@ -319,25 +319,25 @@ export default {
     card: {
       number: "",
       cvc: "",
-      exp: ""
+      exp: "",
     },
     cardRules: [
-      v => !!v || "Card Number is required",
-      v => window.Stripe.validateCardNumber(v) || "Must be a valid card",
-      v => v.length == 19 || "Card number must be 16 digits"
+      (v) => !!v || "Card Number is required",
+      (v) => window.Stripe.validateCardNumber(v) || "Must be a valid card",
+      (v) => v.length == 19 || "Card number must be 16 digits",
     ],
     cvcRules: [
-      v => !!v || "Card Verification Code is required",
-      v =>
+      (v) => !!v || "Card Verification Code is required",
+      (v) =>
         window.Stripe.validateCVC(v) || "Card Verification Code must be valid",
-      v => v.length == 3 || "Card Verification Code must be 3 digits"
+      (v) => v.length == 3 || "Card Verification Code must be 3 digits",
     ],
     dateRules: [
-      v => !!v || "Expiration date is required",
-      v => window.Stripe.validateExpiry(v) || "Expiration date must be valid",
-      v => v.length == 5 || "Expiration date must be 4 digits"
+      (v) => !!v || "Expiration date is required",
+      (v) => window.Stripe.validateExpiry(v) || "Expiration date must be valid",
+      (v) => v.length == 5 || "Expiration date must be 4 digits",
     ],
-    stripeCheck: false
+    stripeCheck: false,
   }),
   methods: {
     async calculateShipping() {
@@ -352,7 +352,7 @@ export default {
         city: "Fort Gratiot",
         state: "MI",
         zip: "48059",
-        country: "US"
+        country: "US",
       };
       var addressTo = {
         name: this.firstname + this.lastname,
@@ -361,7 +361,7 @@ export default {
         state: this.state,
         zip: this.zip,
         country: "US",
-        email: this.email
+        email: this.email,
       };
 
       //calculate layers thick in envelope
@@ -396,16 +396,16 @@ export default {
           .toString(),
         mass_unit: "oz",
         extra: {},
-        test: true
+        test: true,
       };
       const shipment = await shippo.shipment.create(
         {
           address_from: addressFrom,
           address_to: addressTo,
           parcels: [parcel],
-          async: true
+          async: true,
         },
-        function(err, shipment) {
+        function (err, shipment) {
           if (err) {
             console.log(err);
           }
@@ -443,10 +443,11 @@ export default {
           const payload = {
             token: response.id,
             orderNum: globals.orderNum,
-            price: parseFloat(globals.price) + parseFloat(globals.shippingPrice)
+            price:
+              parseFloat(globals.price) + parseFloat(globals.shippingPrice),
           };
           axios
-            .post("http://toasterwaffles.ddns.net/api/charge/", payload)
+            .post("https://vaflpcb.com/api/charge/", payload)
             .then(() => {
               //put info to api
 
@@ -465,14 +466,14 @@ export default {
                   speed: globals.speed,
                   color: globals.color,
                   layers: globals.layers,
-                  request: globals.request
+                  request: globals.request,
                 };
 
                 //http file post
                 const axios = require("axios");
 
                 axios
-                  .post("http://toasterwaffles.ddns.net/api/orders/", formData)
+                  .post("https://vaflpcb.com/api/orders/", formData)
                   .then(() => {
                     this.$router.push({ path: "/success" });
                   });
@@ -481,14 +482,14 @@ export default {
                 this.failed = true;
               }
             })
-            .catch(error => {
+            .catch((error) => {
               console.error(error);
             });
         }
       });
-    }
+    },
   },
-  directives: { mask }
+  directives: { mask },
 };
 </script>
 

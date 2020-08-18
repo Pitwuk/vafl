@@ -1,213 +1,181 @@
 <template>
-  <body class="secondary">
-    <Appbar />
-    <v-form v-model="valid">
-      <v-container>
-        <v-row>
-          <v-col cols="8">
-            <v-card class="tertiary">
-              <v-card-title>
-                <h2 class="display-1">Order PCB</h2>
-              </v-card-title>
+<body class="secondary">
+  <Appbar />
+  <v-form v-model="valid">
+    <v-container>
+      <v-row>
+        <v-col cols="8">
+          <v-card class="tertiary">
+            <v-card-title>
+              <h2 class="display-1">Order PCB</h2>
+            </v-card-title>
 
-              <v-card-text
-                >Please upload your Gerber files and select your
-                options.</v-card-text
-              >
+            <v-card-text>
+              Please upload your Gerber files and select your
+              options.
+            </v-card-text>
 
-              <v-divider></v-divider>
+            <v-divider></v-divider>
 
-              <v-card-actions>
-                <v-btn
-                  block
-                  class="white--text"
-                  color="primary"
-                  v-if="!imageUrl"
-                  @click="onPickFile"
-                  >Upload Files</v-btn
-                >
+            <v-card-actions>
+              <v-btn
+                block
+                class="white--text"
+                color="primary"
+                v-if="!imageUrl"
+                @click="onPickFile"
+              >Upload Files</v-btn>
 
-                <input
-                  type="file"
-                  style="display: none"
-                  name="document"
-                  ref="fileInput"
-                  accept=".zip"
-                  required
-                  @change="onFilePicked"
-                />
-              </v-card-actions>
-              <v-progress-linear
-                indeterminate
-                color="accent"
-                v-if="loading"
-              ></v-progress-linear>
-              <v-card-text class="red--text" v-if="failed"
-                >Invalid File</v-card-text
-              >
-              <v-img
-                id="gerber-front"
-                contain
-                :src="`${imageUrl}.png`"
-                max-height="500"
+              <input
+                type="file"
+                style="display: none"
+                name="document"
+                ref="fileInput"
+                accept=".zip"
+                required
+                @change="onFilePicked"
               />
-              <v-divider></v-divider>
-              <v-card-text>
-                <span class="subheading">Size</span>
-                <v-row>
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model="width"
-                      :rules="widthRules"
-                      label="Width (mm)"
-                      required
-                      @change="updatePrice"
-                    ></v-text-field>
-                  </v-col>
+            </v-card-actions>
+            <v-progress-linear indeterminate color="accent" v-if="loading"></v-progress-linear>
+            <v-card-text class="red--text" v-if="failed">Invalid File</v-card-text>
+            <v-img id="gerber-front" contain :src="`${imageUrl}.png`" max-height="500" />
+            <v-divider></v-divider>
+            <v-card-text>
+              <span class="subheading">Size</span>
+              <v-row>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="width"
+                    :rules="widthRules"
+                    label="Width (mm)"
+                    required
+                    @change="updatePrice"
+                  ></v-text-field>
+                </v-col>
 
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model="height"
-                      :rules="heightRules"
-                      label="Height (mm)"
-                      required
-                      @change="updatePrice"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-              </v-card-text>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="height"
+                    :rules="heightRules"
+                    label="Height (mm)"
+                    required
+                    @change="updatePrice"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </v-card-text>
 
-              <v-card-text>
-                <span class="subheading">Quantity</span>
+            <v-card-text>
+              <span class="subheading">Quantity</span>
 
-                <v-text-field
-                  v-model="quantity"
-                  :rules="quantRules"
-                  @change="updatePrice"
-                  >{{ quantity }}</v-text-field
+              <v-text-field
+                v-model="quantity"
+                :rules="quantRules"
+                @change="updatePrice"
+              >{{ quantity }}</v-text-field>
+            </v-card-text>
+
+            <v-card-text>
+              <span class="subheading">Speed</span>
+
+              <v-chip-group v-model="speed" active-class="accent" mandatory @change="updatePrice">
+                <v-tooltip top v-for="speed in speeds" :key="speed">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-chip v-bind="attrs" v-on="on" :value="speed">
+                      {{
+                      speed
+                      }}
+                    </v-chip>
+                  </template>
+                  <span v-if="speed == 'Economy'">Ships in &#60; 10 days</span>
+                  <span v-if="speed == 'Fast'">Ships in &#60; 24 hours</span>
+                  <span v-if="speed == 'Turbo'">Ships in &#60; 3 hours</span>
+                </v-tooltip>
+              </v-chip-group>
+            </v-card-text>
+
+            <v-card-text>
+              <span class="subheading">Color</span>
+
+              <v-chip-group v-model="color" active-class="accent" mandatory @change="updatePrice">
+                <v-tooltip
+                  top
+                  :disabled="color == 'Any' || speed == 'Turbo'"
+                  v-for="color in colors"
+                  :key="color"
                 >
-              </v-card-text>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-chip v-bind="attrs" v-on="on" :value="color">
+                      {{
+                      color
+                      }}
+                    </v-chip>
+                  </template>
+                  <span v-if="speed == 'Economy'">+$2</span>
+                  <span v-if="speed == 'Fast'">+$4</span>
+                </v-tooltip>
+              </v-chip-group>
+            </v-card-text>
 
-              <v-card-text>
-                <span class="subheading">Speed</span>
+            <v-card-text>
+              <span class="subheading">Layers</span>
 
-                <v-chip-group
-                  v-model="speed"
-                  active-class="accent"
-                  mandatory
-                  @change="updatePrice"
-                >
-                  <v-tooltip top v-for="speed in speeds" :key="speed">
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-chip v-bind="attrs" v-on="on" :value="speed">{{
-                        speed
-                      }}</v-chip>
-                    </template>
-                    <span v-if="speed == 'Economy'"
-                      >Ships in &#60; 10 days</span
-                    >
-                    <span v-if="speed == 'Fast'">Ships in &#60; 24 hours</span>
-                    <span v-if="speed == 'Turbo'">Ships in &#60; 3 hours</span>
-                  </v-tooltip>
-                </v-chip-group>
-              </v-card-text>
+              <v-chip-group v-model="layers" active-class="accent" mandatory>
+                <v-chip v-for="layers in layerOpt" :key="layers" :value="layers">{{ layers }}</v-chip>
+              </v-chip-group>
+            </v-card-text>
+            <v-card-text>
+              <span class="subheading">Custom Requests</span>
+              <v-text-field v-model="request" :rules="requestRules" :counter="512">{{ quantity }}</v-text-field>
+            </v-card-text>
+          </v-card>
+        </v-col>
 
-              <v-card-text>
-                <span class="subheading">Color</span>
-
-                <v-chip-group
-                  v-model="color"
-                  active-class="accent"
-                  mandatory
-                  @change="updatePrice"
-                >
-                  <v-tooltip
-                    top
-                    :disabled="color == 'Any' || speed == 'Turbo'"
-                    v-for="color in colors"
-                    :key="color"
-                  >
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-chip v-bind="attrs" v-on="on" :value="color">{{
-                        color
-                      }}</v-chip>
-                    </template>
-                    <span v-if="speed == 'Economy'">+$2</span>
-                    <span v-if="speed == 'Fast'">+$4</span>
-                  </v-tooltip>
-                </v-chip-group>
-              </v-card-text>
-
-              <v-card-text>
-                <span class="subheading">Layers</span>
-
-                <v-chip-group v-model="layers" active-class="accent" mandatory>
-                  <v-chip
-                    v-for="layers in layerOpt"
-                    :key="layers"
-                    :value="layers"
-                    >{{ layers }}</v-chip
-                  >
-                </v-chip-group>
-              </v-card-text>
-              <v-card-text>
-                <span class="subheading">Custom Requests</span>
-                <v-text-field
-                  v-model="request"
-                  :rules="requestRules"
-                  :counter="512"
-                  >{{ quantity }}</v-text-field
-                >
-              </v-card-text>
-            </v-card>
-          </v-col>
-
-          <v-col>
-            <v-card class="tertiary">
-              <v-card-title>
-                <h2 class="display-1">Price</h2>
-              </v-card-title>
-              <v-divider></v-divider>
-              <v-card-text>
-                <span
-                  class="title"
-                  v-text="'$' + price.toFixed(2).toString()"
-                  :style="
+        <v-col>
+          <v-card class="tertiary">
+            <v-card-title>
+              <h2 class="display-1">Price</h2>
+            </v-card-title>
+            <v-divider></v-divider>
+            <v-card-text>
+              <span
+                class="title"
+                v-text="'$' + price.toFixed(2).toString()"
+                :style="
                     salePrice != 0 ? 'text-decoration: line-through' : null
                   "
-                ></span>
-                <span
-                  class="title"
-                  v-text="
+              ></span>
+              <span
+                class="title"
+                v-text="
                     ' ' + Math.round((1 - salePrice / price) * 100) + '% off'
                   "
-                  v-if="salePrice"
-                ></span>
-                <br />
+                v-if="salePrice"
+              ></span>
+              <br />
 
-                <span
-                  class="title"
-                  style="color: red"
-                  v-text="'$' + salePrice.toFixed(2).toString()"
-                  v-if="salePrice"
-                ></span>
-              </v-card-text>
+              <span
+                class="title"
+                style="color: red"
+                v-text="'$' + salePrice.toFixed(2).toString()"
+                v-if="salePrice"
+              ></span>
+            </v-card-text>
 
-              <v-card-actions>
-                <v-btn
-                  block
-                  class="white--text"
-                  color="primary"
-                  @click="valid ? purchaseRedirect() : null"
-                  >Purchase</v-btn
-                >
-              </v-card-actions>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-form>
-  </body>
+            <v-card-actions>
+              <v-btn
+                block
+                class="white--text"
+                color="primary"
+                @click="valid ? purchaseRedirect() : null"
+              >Purchase</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+  </v-form>
+</body>
 </template>
 
 <script>
@@ -306,12 +274,8 @@ export default {
         }
         //generate order number
         this.orderNum =
-          Math.random()
-            .toString(36)
-            .substring(2, 10) +
-          Math.random()
-            .toString(36)
-            .substring(2, 10);
+          Math.random().toString(36).substring(2, 10) +
+          Math.random().toString(36).substring(2, 10);
 
         //form data
         var formData = new FormData();
@@ -322,7 +286,7 @@ export default {
         const axios = require("axios");
 
         const response = await axios.post(
-          "https://api.vaflpcb.com/api/files/",
+          "https://vaflpcb.com/api/api/files/",
           formData,
           {
             headers: {
@@ -335,7 +299,7 @@ export default {
         this.height = response.data.height;
         this.updatePrice();
 
-        this.imageUrl = "https://api.vaflpcb.com/images/" + this.orderNum;
+        this.imageUrl = "https://vaflpcb.com/api/images/" + this.orderNum;
         this.loading = false;
       } catch (e) {
         console.error(e);
