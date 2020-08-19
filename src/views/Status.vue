@@ -51,7 +51,7 @@
             <h3 align="center">Order Details:</h3>
             <v-img
               contain
-              :src="'http://toasterwaffles.ddns.net/images/'+orderNum+'.png'"
+              :src="'http://toasterwaffles.ddns.net/files/images/'+orderNum+'.png'"
               max-height="500"
             />
             <p>Quantity: {{quantity}}pcs</p>
@@ -59,6 +59,12 @@
             <p>Color: {{color}}</p>
             <p>Layers: {{layers}}</p>
             <p v-if="request">Custom Request: {{request}}</p>
+            <form
+              method="get"
+              action="http://toasterwaffles.ddns.net/files/gerbers/a3a7l3rpeljixdm1.zip"
+            >
+              <v-btn type="submit">Download Files</v-btn>
+            </form>
           </v-card>
         </v-col>
       </v-row>
@@ -70,7 +76,7 @@
 <script>
 import Appbar from "../components/Appbar.vue";
 import globals from "../globals.js";
-//test order num: gc6iu5sg99m6zopq
+//test order num: a3a7l3rpeljixdm1
 export default {
   data: () => ({
     failed: false,
@@ -83,9 +89,9 @@ export default {
     layers: 0,
     request: "",
     orderRules: [
-      value => !!value || "Required",
-      value => value.length == 16 || "Must be 16 characters"
-    ]
+      (value) => !!value || "Required",
+      (value) => value.length == 16 || "Must be 16 characters",
+    ],
   }),
   methods: {
     async checkStatus() {
@@ -93,7 +99,7 @@ export default {
       try {
         //form data
         const formData = {
-          orderNum: this.orderNum
+          orderNum: this.orderNum,
         };
 
         //http file post
@@ -121,9 +127,9 @@ export default {
         this.loading = false;
         this.failed = true;
       }
-    }
+    },
   },
-  components: { Appbar }
+  components: { Appbar },
 };
 </script>
 

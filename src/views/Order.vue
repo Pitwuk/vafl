@@ -286,7 +286,7 @@ export default {
         const axios = require("axios");
 
         const response = await axios.post(
-          "https://vaflpcb.com/api/api/files/",
+          "http://toasterwaffles.ddns.net/api/files/",
           formData,
           {
             headers: {
@@ -299,7 +299,8 @@ export default {
         this.height = response.data.height;
         this.updatePrice();
 
-        this.imageUrl = "https://vaflpcb.com/api/images/" + this.orderNum;
+        this.imageUrl =
+          "http://toasterwaffles.ddns.net/api/files/images/" + this.orderNum;
         this.loading = false;
       } catch (e) {
         console.error(e);

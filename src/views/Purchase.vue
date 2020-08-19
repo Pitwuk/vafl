@@ -447,7 +447,7 @@ export default {
               parseFloat(globals.price) + parseFloat(globals.shippingPrice),
           };
           axios
-            .post("https://vaflpcb.com/api/charge/", payload)
+            .post("http://toasterwaffles.ddns.net/api/charge/", payload)
             .then(() => {
               //put info to api
 
@@ -473,7 +473,7 @@ export default {
                 const axios = require("axios");
 
                 axios
-                  .post("https://vaflpcb.com/api/orders/", formData)
+                  .post("http://toasterwaffles.ddns.net/api/orders/", formData)
                   .then(() => {
                     this.$router.push({ path: "/success" });
                   });

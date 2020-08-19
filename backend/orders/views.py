@@ -3,6 +3,7 @@ from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_exempt
 from django.http.multipartparser import MultiPartParser
 from django.http import HttpResponse, JsonResponse
+from django.utils.encoding import smart_str
 import json
 import zipfile
 import base64
@@ -168,9 +169,8 @@ def order_data(request):
             for x in mycursor:
                 order_arr = list(x)
                 print('order found')
-
-            order_arr[13] = str(order_arr[13])
-            print(order_arr[13])
+            
+            order_arr[15] = str(order_arr[15])
             response_object = json.dumps(order_arr)
 
             return JsonResponse(response_object, safe=False)

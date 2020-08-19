@@ -1,8 +1,6 @@
 <template>
   <v-app-bar max-height="70" elevate-on-scroll dark color="primary">
-    <v-spacer />
     <v-img src="../assets/logo.png" contain max-height="50" @click="home()" id="bar" />
-    <v-spacer />
     <v-toolbar-items>
       <v-btn icon to="/cart">
         <v-icon>mdi-cart</v-icon>
@@ -19,8 +17,8 @@ export default {
   methods: {
     home() {
       this.$router.push("/");
-    }
-  }
+    },
+  },
 };
 </script>
 
