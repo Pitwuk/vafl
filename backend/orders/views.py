@@ -178,5 +178,38 @@ def order_data(request):
         except Exception as e:
             print(e)
             print('error making sql query')
+    
+    else:
+        return HttpResponse(status=400)
+
+@csrf_exempt
+def admin(request):
+    print(json.loads(request.body))
+    if request.method == 'POST' and json.loads(request.body)['password'] == config('ORDER_PASS'):
+        try:
+            mydb = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password=config('MYSQL_PASS'),
+                database='vafl'
+            )
+            mycursor = mydb.cursor()
+            mycursor.execute(
+                "SELECT * FROM orders")
+
+            order_arr = []
+            for x in mycursor:
+                temp_order_arr = list(x)
+                temp_order_arr[15] = str(temp_order_arr[15])
+                order_arr.append(temp_order_arr)
+            
+            
+            response_object = json.dumps(order_arr)
+
+            return JsonResponse(response_object, safe=False)
+
+        except Exception as e:
+            print(e)
+            print('error making sql query')
     else:
         return HttpResponse(status=400)
