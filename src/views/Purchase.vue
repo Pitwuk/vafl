@@ -1,175 +1,179 @@
 <template>
-  <v-stepper v-model="e1">
-    <v-stepper-header class="primary">
-      <v-stepper-step :complete="e1 > 1" step="1">
-        <span style="color:white">Shipping Information</span>
-      </v-stepper-step>
+  <v-app class="accent">
+    <v-stepper v-model="e1">
+      <v-stepper-header class="primary">
+        <v-stepper-step :complete="e1 > 1" step="1">
+          <span style="color:white">Shipping Information</span>
+        </v-stepper-step>
 
-      <v-divider color="grey"></v-divider>
+        <v-divider color="grey"></v-divider>
 
-      <v-stepper-step :complete="e1 > 2" step="2">
-        <span style="color:white">Shipping Method</span>
-      </v-stepper-step>
+        <v-stepper-step :complete="e1 > 2" step="2">
+          <span style="color:white">Shipping Method</span>
+        </v-stepper-step>
 
-      <v-divider color="grey"></v-divider>
+        <v-divider color="grey"></v-divider>
 
-      <v-stepper-step color="grey" step="3">
-        <span style="color:white">Billing</span>
-      </v-stepper-step>
-    </v-stepper-header>
+        <v-stepper-step color="grey" step="3">
+          <span style="color:white">Billing</span>
+        </v-stepper-step>
+      </v-stepper-header>
 
-    <v-stepper-items class="tertiary">
-      <v-stepper-content step="1">
-        <v-form v-model="valid">
-          <v-container>
-            <v-row>
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="firstname"
-                  :rules="nameRules"
-                  :counter="32"
-                  label="First name"
-                  required
-                ></v-text-field>
-              </v-col>
+      <v-stepper-items>
+        <v-stepper-content step="1">
+          <v-form v-model="valid">
+            <v-container>
+              <v-row>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="firstname"
+                    :rules="nameRules"
+                    :counter="32"
+                    label="First name"
+                    required
+                  ></v-text-field>
+                </v-col>
 
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="lastname"
-                  :rules="nameRules"
-                  :counter="32"
-                  label="Last name"
-                  required
-                ></v-text-field>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" md="8">
-                <v-text-field v-model="email" :rules="emailRules" label="E-mail" required></v-text-field>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" md="4">
-                <v-text-field v-model="address" :rules="addressRules" label="Address" required></v-text-field>
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-text-field v-model="city" :rules="cityRules" label="City" required></v-text-field>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" md="4">
-                <v-autocomplete
-                  v-model="state"
-                  :items="states"
-                  :rules="stateRules"
-                  label="State"
-                  append-icon="mdi-city"
-                ></v-autocomplete>
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-text-field
-                  v-model="zip"
-                  :rules="zipRules"
-                  label="Zip Code"
-                  :counter="5"
-                  required
-                ></v-text-field>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-form>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="lastname"
+                    :rules="nameRules"
+                    :counter="32"
+                    label="Last name"
+                    required
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" md="8">
+                  <v-text-field v-model="email" :rules="emailRules" label="E-mail" required></v-text-field>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="address" :rules="addressRules" label="Address" required></v-text-field>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field v-model="city" :rules="cityRules" label="City" required></v-text-field>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" md="4">
+                  <v-autocomplete
+                    v-model="state"
+                    :items="states"
+                    :rules="stateRules"
+                    label="State"
+                    append-icon="mdi-city"
+                  ></v-autocomplete>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <v-text-field
+                    v-model="zip"
+                    :rules="zipRules"
+                    label="Zip Code"
+                    :counter="5"
+                    required
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-form>
 
-        <v-btn color="primary" @click="valid ? calculateShipping() : null">Continue</v-btn>
+          <v-btn color="primary" @click="valid ? calculateShipping() : null">Continue</v-btn>
 
-        <v-btn text to="/order">Cancel</v-btn>
-      </v-stepper-content>
+          <v-btn text to="/order">Cancel</v-btn>
+        </v-stepper-content>
 
-      <v-stepper-content step="2">
-        <v-progress-circular indeterminate color="accent" v-if="loading"></v-progress-circular>
-        <v-list>
-          <v-list-item-group v-model="shippingMethod" color="primary">
-            <v-list-item v-for="(shippingMethod, i) in shippingRates" :key="i">
-              <v-list-item-content>
-                <v-list-item-title v-text="[...shippingMethod.amount][0]"></v-list-item-title>
-              </v-list-item-content>
+        <v-stepper-content step="2">
+          <v-progress-circular indeterminate color="accent" v-if="loading"></v-progress-circular>
+          <v-list>
+            <v-list-item-group v-model="shippingMethod" color="primary">
+              <v-list-item v-for="(shippingMethod, i) in shippingRates" :key="i">
+                <v-list-item-content>
+                  <v-list-item-title v-text="[...shippingMethod.amount][0]"></v-list-item-title>
+                </v-list-item-content>
 
-              <v-list-item-content>
-                <v-list-item-title v-text="shippingMethod.estimated_days"></v-list-item-title>
-              </v-list-item-content>
+                <v-list-item-content>
+                  <v-list-item-title v-text="shippingMethod.estimated_days"></v-list-item-title>
+                </v-list-item-content>
 
-              <v-list-item-content>
-                <v-list-item-title v-text="shippingMethod.provider"></v-list-item-title>
-              </v-list-item-content>
-              <v-list-item-content>
-                <v-list-item-title v-text="shippingMethod.servicelevel.name"></v-list-item-title>
-              </v-list-item-content>
+                <v-list-item-content>
+                  <v-list-item-title v-text="shippingMethod.provider"></v-list-item-title>
+                </v-list-item-content>
+                <v-list-item-content>
+                  <v-list-item-title v-text="shippingMethod.servicelevel.name"></v-list-item-title>
+                </v-list-item-content>
 
-              <v-list-item-icon>
-                <v-img :src="shippingMethod.provider_image_75" />
-              </v-list-item-icon>
-            </v-list-item>
-          </v-list-item-group>
-        </v-list>
+                <v-list-item-icon>
+                  <v-img :src="shippingMethod.provider_image_75" />
+                </v-list-item-icon>
+              </v-list-item>
+            </v-list-item-group>
+          </v-list>
 
-        <v-btn color="primary" @click="handleShipping()">Continue</v-btn>
+          <v-btn color="primary" @click="handleShipping()">Continue</v-btn>
 
-        <v-btn text @click="e1 = 1">Back</v-btn>
-      </v-stepper-content>
+          <v-btn text @click="e1 = 1">Back</v-btn>
+        </v-stepper-content>
 
-      <v-stepper-content step="3">
-        <v-form v-model="valid">
-          <!-- <v-textarea>Price: {{ boardPrice }} + {{ shippingRates[shippingMethod]['amount'] }} = {{totalCost}}</v-textarea> -->
-          <v-container>
-            <v-row>
-              <v-col cols="12" md="8">
-                <v-text-field
-                  v-model="card.number"
-                  :rules="cardRules"
-                  label="Card Number"
-                  v-mask="'#### #### #### ####'"
-                  required
-                ></v-text-field>
-              </v-col>
+        <v-stepper-content step="3">
+          <v-form v-model="valid">
+            <!-- <v-textarea>Price: {{ boardPrice }} + {{ shippingRates[shippingMethod]['amount'] }} = {{totalCost}}</v-textarea> -->
+            <v-container>
+              <v-row>
+                <v-col cols="12" md="8">
+                  <v-text-field
+                    v-model="card.number"
+                    :rules="cardRules"
+                    label="Card Number"
+                    v-mask="'#### #### #### ####'"
+                    required
+                  ></v-text-field>
+                </v-col>
 
-              <v-col cols="12" md="2">
-                <v-text-field
-                  v-model="card.cvc"
-                  :rules="cvcRules"
-                  :counter="3"
-                  label="CVC"
-                  v-mask="'###'"
-                  required
-                ></v-text-field>
-              </v-col>
+                <v-col cols="12" md="2">
+                  <v-text-field
+                    v-model="card.cvc"
+                    :rules="cvcRules"
+                    :counter="3"
+                    label="CVC"
+                    v-mask="'###'"
+                    required
+                  ></v-text-field>
+                </v-col>
 
-              <v-col cols="12" md="2">
-                <v-text-field
-                  v-model="card.exp"
-                  :rules="dateRules"
-                  label="MM/YY"
-                  v-mask="'##/##'"
-                  required
-                ></v-text-field>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-form>
-        <v-progress-circular indeterminate color="accent" v-if="loading"></v-progress-circular>
-        <v-btn
-          color="primary"
-          :disabled="stripeCheck || !valid"
-          @click="valid ? createToken() : null"
-        >Submit</v-btn>
+                <v-col cols="12" md="2">
+                  <v-text-field
+                    v-model="card.exp"
+                    :rules="dateRules"
+                    label="MM/YY"
+                    v-mask="'##/##'"
+                    required
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-form>
+          <v-progress-circular indeterminate color="accent" v-if="loading"></v-progress-circular>
+          <v-btn
+            color="primary"
+            :disabled="stripeCheck || !valid"
+            @click="valid ? createToken() : null"
+          >Submit</v-btn>
 
-        <v-btn text @click="e1 = 2">Back</v-btn>
-      </v-stepper-content>
-    </v-stepper-items>
-  </v-stepper>
+          <v-btn text @click="e1 = 2">Back</v-btn>
+        </v-stepper-content>
+      </v-stepper-items>
+    </v-stepper>
+  </v-app>
 </template>
 
 <script>
 import globals from "../globals.js";
 import { mask } from "vue-the-mask";
+
+const BASE_URL = "http://127.0.0.1:8000";
 
 export default {
   data: () => ({
@@ -447,7 +451,7 @@ export default {
               parseFloat(globals.price) + parseFloat(globals.shippingPrice),
           };
           axios
-            .post("http://toasterwaffles.ddns.net/api/charge/", payload)
+            .post(BASE_URL + "/api/charge/", payload)
             .then(() => {
               //put info to api
 
@@ -472,11 +476,9 @@ export default {
                 //http file post
                 const axios = require("axios");
 
-                axios
-                  .post("http://toasterwaffles.ddns.net/api/orders/", formData)
-                  .then(() => {
-                    this.$router.push({ path: "/success" });
-                  });
+                axios.post(BASE_URL + "/api/orders/", formData).then(() => {
+                  this.$router.push({ path: "/success" });
+                });
               } catch (e) {
                 console.error(e);
                 this.failed = true;

@@ -5,7 +5,8 @@ node_modules
 /backend/orders/images
 /backend/orders/current
 /dist
-env
+/env
+/desktop_env
 cert
 
 # local env files

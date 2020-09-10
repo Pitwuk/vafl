@@ -1,11 +1,11 @@
 <template>
-<body class="secondary">
+<body class="quaternary">
   <Appbar />
   <v-form v-model="valid">
     <v-container>
       <v-row>
         <v-col cols="8">
-          <v-card class="tertiary">
+          <v-card>
             <v-card-title>
               <h2 class="display-1">Order PCB</h2>
             </v-card-title>
@@ -78,7 +78,12 @@
             <v-card-text>
               <span class="subheading">Speed</span>
 
-              <v-chip-group v-model="speed" active-class="accent" mandatory @change="updatePrice">
+              <v-chip-group
+                v-model="speed"
+                active-class="secondary"
+                mandatory
+                @change="updatePrice"
+              >
                 <v-tooltip top v-for="speed in speeds" :key="speed">
                   <template v-slot:activator="{ on, attrs }">
                     <v-chip v-bind="attrs" v-on="on" :value="speed">
@@ -97,7 +102,12 @@
             <v-card-text>
               <span class="subheading">Color</span>
 
-              <v-chip-group v-model="color" active-class="accent" mandatory @change="updatePrice">
+              <v-chip-group
+                v-model="color"
+                active-class="secondary"
+                mandatory
+                @change="updatePrice"
+              >
                 <v-tooltip
                   top
                   :disabled="color == 'Any' || speed == 'Turbo'"
@@ -120,7 +130,7 @@
             <v-card-text>
               <span class="subheading">Layers</span>
 
-              <v-chip-group v-model="layers" active-class="accent" mandatory>
+              <v-chip-group v-model="layers" active-class="secondary" mandatory>
                 <v-chip v-for="layers in layerOpt" :key="layers" :value="layers">{{ layers }}</v-chip>
               </v-chip-group>
             </v-card-text>
@@ -132,7 +142,7 @@
         </v-col>
 
         <v-col>
-          <v-card class="tertiary">
+          <v-card>
             <v-card-title>
               <h2 class="display-1">Price</h2>
             </v-card-title>
@@ -167,8 +177,11 @@
                 block
                 class="white--text"
                 color="primary"
-                @click="valid ? purchaseRedirect() : null"
+                @click="valid ? overlay = !overlay : null"
               >Purchase</v-btn>
+              <v-overlay :absolute="absolute" opacity=".5" :value="overlay" :z-index="zIndex">
+                <v-btn color="primary" @click="purchaseRedirect()">Hide Overlay</v-btn>
+              </v-overlay>
             </v-card-actions>
           </v-card>
         </v-col>
@@ -184,10 +197,12 @@ import globals from "../globals.js";
 
 var pricePerCm = 0.1;
 var sale = 1; //(.9 = 10% off)
+const BASE_URL = "http://127.0.0.1:8000";
 
 export default {
   data: () => ({
     valid: false,
+    overlay: false,
     price: 0,
     price2: 0,
     salePrice: 0,
@@ -235,13 +250,13 @@ export default {
         this.width = this.height;
         this.height = temp;
       }
-      if (this.width > 50 || this.height > 50)
-        this.price =
-          parseInt(this.quantity) *
-          parseFloat(this.width / 10) *
-          parseFloat(this.height / 10) *
-          pricePerCm;
-      else this.price = 2 * this.quantity;
+      // if (this.width > 50 || this.height > 50)
+      this.price =
+        parseInt(this.quantity) *
+        parseFloat(this.width / 10) *
+        parseFloat(this.height / 10) *
+        pricePerCm;
+      // else this.price = 2 * this.quantity;
       if (this.speed == "Fast") this.price *= 2;
       else if (this.speed == "Turbo") {
         var panels = this.quantity / Math.floor(279.4 / this.height);
@@ -285,22 +300,17 @@ export default {
         //http file post
         const axios = require("axios");
 
-        const response = await axios.post(
-          "http://toasterwaffles.ddns.net/api/files/",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        const response = await axios.post(BASE_URL + "/api/files/", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
 
         this.width = response.data.width;
         this.height = response.data.height;
         this.updatePrice();
 
-        this.imageUrl =
-          "http://toasterwaffles.ddns.net/api/files/images/" + this.orderNum;
+        this.imageUrl = BASE_URL + "/files/images/" + this.orderNum;
         this.loading = false;
       } catch (e) {
         console.error(e);

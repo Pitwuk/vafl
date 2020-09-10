@@ -1,10 +1,10 @@
 <template>
-<body class="secondary">
+<body class="accent">
   <Appbar />
   <v-container v-if="!quantity">
     <v-row align="center" justify="center">
       <v-col cols="12" sm="8" md="4">
-        <v-card class="elevation-12 tertiary">
+        <v-card class="elevation-12">
           <v-toolbar color="primary" dark elevation="0">
             <v-toolbar-title>Status</v-toolbar-title>
           </v-toolbar>
@@ -37,7 +37,7 @@
     <v-container>
       <v-row>
         <v-col cols="12" md="6">
-          <v-card class="secondary">
+          <v-card class="accent">
             <v-timeline>
               <v-timeline-item :color="(stage>=1?'green': 'grey')">Processing</v-timeline-item>
               <v-timeline-item :color="(stage>=2?'green': 'grey')" class="text-right">Manufacturing</v-timeline-item>
@@ -47,11 +47,11 @@
           </v-card>
         </v-col>
         <v-col cols="12" md="6">
-          <v-card class="secondary">
+          <v-card class="accent">
             <h3 align="center">Order Details:</h3>
             <v-img
               contain
-              :src="'http://toasterwaffles.ddns.net/files/images/'+orderNum+'.png'"
+              :src="BASE_URL+'/files/images/'+orderNum+'.png'"
               max-height="500"
             />
             <p>Quantity: {{quantity}}pcs</p>
@@ -61,7 +61,7 @@
             <p v-if="request">Custom Request: {{request}}</p>
             <form
               method="get"
-              action="http://toasterwaffles.ddns.net/files/gerbers/a3a7l3rpeljixdm1.zip"
+              :action="BASE_URL+'/files/gerbers/'+orderNum+'.zip'"
             >
               <v-btn type="submit">Download Files</v-btn>
             </form>
@@ -76,6 +76,8 @@
 <script>
 import Appbar from "../components/Appbar.vue";
 import globals from "../globals.js";
+const BASE_URL = 'http://127.0.0.1:8000'
+
 //test order num: a3a7l3rpeljixdm1
 export default {
   data: () => ({
@@ -106,7 +108,7 @@ export default {
         const axios = require("axios");
 
         const response = await axios.put(
-          "http://toasterwaffles.ddns.net/api/orders/",
+          BASE_URL+"/api/orders/",
           formData
         );
 

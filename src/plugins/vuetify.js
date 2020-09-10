@@ -11,10 +11,12 @@ export default new Vuetify({
   theme: {
     themes: {
       light: {
-        primary: "#281e10",
-        secondary: "#dac1a8",
-        tertiary: "#faebd7",
-        accent: colors.deepOrange,
+        primary: "#4b543b",
+        secondary: "#b57f50",
+        tertiary: "#8ed081",
+        quaternary: "#EDF0D4",
+        accent: "#b4d2ba",
+        
       },
     },
   },

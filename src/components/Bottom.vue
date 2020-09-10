@@ -17,7 +17,7 @@
       </ul>
     </div>
   </footer>-->
-  <footer class="tertiary">
+  <footer class="accent">
     <ul class="footer-list-top">
       <li>
         <h4 class="footer-header">Services</h4>
@@ -79,7 +79,7 @@ footer {
   margin-top: auto;
   width: 100%;
 }
-.tertiary {
+.accent {
   display: flex;
   flex-flow: row wrap;
 }

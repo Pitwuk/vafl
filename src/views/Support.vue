@@ -1,18 +1,18 @@
 <template>
-<body class="secondary">
+<body class="accent">
   <Appbar />
   <br />
-  <v-card class="tertiary">
+  <v-card >
     <h1>Frequently Asked Questions:</h1>
-    <v-expansion-panels>
-      <v-expansion-panel v-for="(item,i) in questions" :key="i">
+    <v-expansion-panels >
+      <v-expansion-panel v-for="(item,i) in questions" :key="i" class='grey lighten-4'>
         <v-expansion-panel-header style="font-weight: bold">{{item.question}}</v-expansion-panel-header>
         <v-expansion-panel-content>{{item.answer}}</v-expansion-panel-content>
       </v-expansion-panel>
     </v-expansion-panels>
   </v-card>
   <br />
-  <v-card class="tertiary">
+  <v-card >
     <h3>Further Inqueries?</h3>
     <span>Please contact our customer support at vaflpcb@gmail.com</span>
   </v-card>

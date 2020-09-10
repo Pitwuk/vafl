@@ -1,19 +1,15 @@
 <template>
 <body class="secondary">
   <Appbar />
-
-  <v-container fluid class="center">
-    <v-row v-for="(capability, i) in list" :key="i" no-gutters>
-      <v-col cols="2">
-        <v-card outlined tile class="ma-1 pa-6 tertiary">
-          <span>{{capability.feature}}</span>
-        </v-card>
-      </v-col>
-      <v-col cols="2">
-        <v-card outlined tile class="ma-1 pa-6 tertiary">
-          <span>{{capability.description}}</span>
-        </v-card>
-      </v-col>
+  <v-container fluid >
+    
+    <v-row align="center" justify="center" v-for="(capability, i) in list" :key="i" no-gutters>
+      <v-col cols="12" sm="8" md="4">
+          <v-card class="elevation-12">
+         <a>{{capability.feature+ ': ' }}</a>
+         <a style="justify-self: end;">{{capability.description}}</a>
+      </v-card></v-col>
+      
     </v-row>
   </v-container>
 </body>

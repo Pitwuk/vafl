@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "id": "0",
+      "name": "4x6\" Perfboard",
+      "description": "2301 holes for all your prototyping needs",
+      "price": "6.00"
+    },
+    {
+      "id": "1",
+      "name": "1x2\" Perfboard",
+      "description": "171 holes for all your prototyping needs",
+      "price": "0.70"
+    }
+  ]
+}
