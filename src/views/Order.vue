@@ -45,7 +45,7 @@
               <v-row>
                 <v-col cols="12" md="4">
                   <v-text-field
-                    v-model="width"
+                    v-model="order.width"
                     :rules="widthRules"
                     label="Width (mm)"
                     required
@@ -55,7 +55,7 @@
 
                 <v-col cols="12" md="4">
                   <v-text-field
-                    v-model="height"
+                    v-model="order.height"
                     :rules="heightRules"
                     label="Height (mm)"
                     required
@@ -69,17 +69,17 @@
               <span class="subheading">Quantity</span>
 
               <v-text-field
-                v-model="quantity"
+                v-model="order.quantity"
                 :rules="quantRules"
                 @change="updatePrice"
-              >{{ quantity }}</v-text-field>
+              >{{ order.quantity }}</v-text-field>
             </v-card-text>
 
             <v-card-text>
               <span class="subheading">Speed</span>
 
               <v-chip-group
-                v-model="speed"
+                v-model="order.speed"
                 active-class="secondary"
                 mandatory
                 @change="updatePrice"
@@ -103,14 +103,14 @@
               <span class="subheading">Color</span>
 
               <v-chip-group
-                v-model="color"
+                v-model="order.color"
                 active-class="secondary"
                 mandatory
                 @change="updatePrice"
               >
                 <v-tooltip
                   top
-                  :disabled="color == 'Any' || speed == 'Turbo'"
+                  :disabled="color == 'Any' || order.speed == 'Turbo'"
                   v-for="color in colors"
                   :key="color"
                 >
@@ -121,8 +121,8 @@
                       }}
                     </v-chip>
                   </template>
-                  <span v-if="speed == 'Economy'">+$2</span>
-                  <span v-if="speed == 'Fast'">+$4</span>
+                  <span v-if="order.speed == 'Economy'">+$2</span>
+                  <span v-if="order.speed == 'Fast'">+$4</span>
                 </v-tooltip>
               </v-chip-group>
             </v-card-text>
@@ -130,13 +130,17 @@
             <v-card-text>
               <span class="subheading">Layers</span>
 
-              <v-chip-group v-model="layers" active-class="secondary" mandatory>
+              <v-chip-group v-model="order.layers" active-class="secondary" mandatory>
                 <v-chip v-for="layers in layerOpt" :key="layers" :value="layers">{{ layers }}</v-chip>
               </v-chip-group>
             </v-card-text>
             <v-card-text>
               <span class="subheading">Custom Requests</span>
-              <v-text-field v-model="request" :rules="requestRules" :counter="512">{{ quantity }}</v-text-field>
+              <v-text-field
+                v-model="order.request"
+                :rules="requestRules"
+                :counter="512"
+              >{{ order.request }}</v-text-field>
             </v-card-text>
           </v-card>
         </v-col>
@@ -179,8 +183,22 @@
                 color="primary"
                 @click="valid ? overlay = !overlay : null"
               >Purchase</v-btn>
-              <v-overlay :absolute="absolute" opacity=".5" :value="overlay" :z-index="zIndex">
-                <v-btn color="primary" @click="purchaseRedirect()">Hide Overlay</v-btn>
+              <v-overlay opacity=".5" :value="overlay">
+                <v-card class="ma-3 pa-3">
+                  <v-btn icon @click="overlay = false">
+                    <v-icon>mdi-close</v-icon>
+                  </v-btn>
+                  <v-card-title>
+                    <h2 class="display-1">Continue Shopping</h2>
+                  </v-card-title>
+
+                  <v-card-text>Would you like to continue shopping or checkout?</v-card-text>
+
+                  <v-divider></v-divider>
+
+                  <v-btn color="primary" @click="storeRedirect()">Continue Shopping</v-btn>
+                  <v-btn color="primary" @click="purchaseRedirect()">Checkout Now</v-btn>
+                </v-card>
               </v-overlay>
             </v-card-actions>
           </v-card>
@@ -193,7 +211,6 @@
 
 <script>
 import Appbar from "../components/Appbar.vue";
-import globals from "../globals.js";
 
 var pricePerCm = 0.1;
 var sale = 1; //(.9 = 10% off)
@@ -203,19 +220,29 @@ export default {
   data: () => ({
     valid: false,
     overlay: false,
+    loading: false,
+    failed: false,
     price: 0,
-    price2: 0,
     salePrice: 0,
     imageUrl: "",
     gerber: "",
-    quantity: "1",
+    order: {
+      name: "PCB Prototyping Service",
+      orderNum: "",
+      width: "0",
+      height: "0",
+      quantity: "1",
+      speed: "Economy",
+      color: "Any",
+      layers: "2",
+      request: "",
+      price: 0,
+    },
     quantRules: [
       (value) => !!value || "Required",
       (value) =>
         (!isNaN(value) && !value.includes(".")) || "Must be an integer value",
     ],
-    width: "0",
-    height: "0",
     widthRules: [
       (value) => !!value || "Required",
       (value) => !isNaN(value) || "Must be a number",
@@ -228,50 +255,48 @@ export default {
       (value) => value > 0 || "Must be greater than 0",
       (value) => value <= 279 || "Maximum height is 279 mm",
     ],
-    layers: "2",
-    layerOpt: ["1", "2"],
-    speed: "Economy",
-    speeds: ["Economy", "Fast", "Turbo"],
-    color: "Any",
-    colors: ["White", "Blue", "Red", "Any"],
-    request: "",
     requestRules: [
       (value) => value.length <= 512 || "Can not exceed 512 characters",
     ],
-    orderNum: "",
-    loading: false,
-    failed: false,
+    layerOpt: ["1", "2"],
+    speeds: ["Economy", "Fast", "Turbo"],
+    colors: ["White", "Blue", "Red", "Any"],
   }),
   methods: {
     updatePrice() {
       //swaps size
-      if (this.width > 0 && this.height > 0 && this.width > this.height) {
-        var temp = this.width;
-        this.width = this.height;
-        this.height = temp;
+      if (
+        this.order.width > 0 &&
+        this.order.height > 0 &&
+        this.order.width > this.order.height
+      ) {
+        var temp = this.order.width;
+        this.order.width = this.order.height;
+        this.order.height = temp;
       }
       // if (this.width > 50 || this.height > 50)
       this.price =
-        parseInt(this.quantity) *
-        parseFloat(this.width / 10) *
-        parseFloat(this.height / 10) *
+        parseInt(this.order.quantity) *
+        parseFloat(this.order.width / 10) *
+        parseFloat(this.order.height / 10) *
         pricePerCm;
       // else this.price = 2 * this.quantity;
-      if (this.speed == "Fast") this.price *= 2;
-      else if (this.speed == "Turbo") {
-        var panels = this.quantity / Math.floor(279.4 / this.height);
-        panels /= Math.floor(215.9 / this.width);
+      if (this.order.speed == "Fast") this.price *= 2;
+      else if (this.order.speed == "Turbo") {
+        var panels =
+          this.order.quantity / Math.floor(279.4 / this.order.height);
+        panels /= Math.floor(215.9 / this.order.width);
         panels = Math.floor(panels) + 1;
         this.price = 250 * panels;
       }
-      if (this.color != "Any") {
-        if (this.speed == "Economy") this.price += 2;
-        else if (this.speed == "Fast") this.price += 4;
+      if (this.order.color != "Any") {
+        if (this.order.speed == "Economy") this.price += 2;
+        else if (this.order.speed == "Fast") this.price += 4;
       }
       if (sale != 1) {
         this.salePrice = this.price * sale;
-        this.price2 = this.salePrice;
-      } else this.price2 = this.price;
+        this.order.price = this.salePrice;
+      } else this.order.price = this.price;
     },
     onPickFile() {
       this.loading = true;
@@ -288,13 +313,13 @@ export default {
           return alert("Please add a valid file");
         }
         //generate order number
-        this.orderNum =
+        this.order.orderNum =
           Math.random().toString(36).substring(2, 10) +
           Math.random().toString(36).substring(2, 10);
 
         //form data
         var formData = new FormData();
-        formData.append("orderNum", this.orderNum);
+        formData.append("orderNum", this.order.orderNum);
         formData.append("gerber", f);
 
         //http file post
@@ -306,11 +331,11 @@ export default {
           },
         });
 
-        this.width = response.data.width;
-        this.height = response.data.height;
+        this.order.width = response.data.width;
+        this.order.height = response.data.height;
         this.updatePrice();
 
-        this.imageUrl = BASE_URL + "/files/images/" + this.orderNum;
+        this.imageUrl = BASE_URL + "/files/images/" + this.order.orderNum;
         this.loading = false;
       } catch (e) {
         console.error(e);
@@ -320,18 +345,24 @@ export default {
     },
     purchaseRedirect() {
       if (!this.failed && this.imageUrl) {
-        globals.width = this.width;
-        globals.height = this.height;
-        globals.quantity = this.quantity;
-        globals.speed = this.speed;
-        globals.color = this.color;
-        globals.layers = this.layers;
-        globals.price = this.price2;
-        globals.orderNum = this.orderNum;
-        globals.request = this.request;
-
+        this.addToCart();
         this.$router.push("/purchase");
       }
+    },
+    storeRedirect() {
+      if (!this.failed && this.imageUrl) {
+        this.addToCart();
+        this.$router.push("/store");
+      }
+    },
+    addToCart() {
+      if (this.$cart.length == 0)
+        this.$cart.push(
+          Math.random().toString(36).substring(2, 10) +
+            Math.random().toString(36).substring(2, 10)
+        );
+      this.$cart.push(this.order);
+      console.log(this.$cart);
     },
   },
   components: { Appbar },

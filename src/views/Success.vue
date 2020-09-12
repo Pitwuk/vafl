@@ -34,20 +34,19 @@
 
 <script>
 import Appbar from "../components/Appbar.vue";
-import globals from "../globals.js";
-const BASE_URL = '127.0.0.1:8000'
+const BASE_URL = "127.0.0.1:8000";
 export default {
   data: () => ({
-    boardPrice: globals.price,
-    shippingPrice: globals.shippingPrice,
-    orderNum: globals.orderNum,
-    quantity: globals.quantity,
-    width: globals.width,
-    height: globals.height,
-    speed: globals.speed,
-    color: globals.color,
-    layers: globals.layers,
-    request: globals.request,
+    // boardPrice: globals.price,
+    // shippingPrice: globals.shippingPrice,
+    // orderNum: globals.orderNum,
+    // quantity: globals.quantity,
+    // width: globals.width,
+    // height: globals.height,
+    // speed: globals.speed,
+    // color: globals.color,
+    // layers: globals.layers,
+    // request: globals.request,
   }),
   components: { Appbar },
 };

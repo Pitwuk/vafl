@@ -9,61 +9,43 @@
         <v-btn x-large raised to="/order" height="100" width="300" color="secondary">Order Now</v-btn>
       </div>
     </v-carousel>
-    <div class='quaternary'>
+    <div class="quaternary">
       <v-container>
-      <v-row>
-        <v-col cols="12" md="4">
-          <v-hover v-slot:default="{ hover }">
-            <v-card href='/support'
-              :elevation="hover ? 12 : 2" class="home-card">
-              <v-img
-                src="../assets/fast.png"
-                class='home-card-image'
-                contain
-              />
-              <a class='home-card-text'>
-            <h3>Lightning Fast Manufacturing</h3>
-            <p
-              
-            >Get your boards manufactured in under 24 hours.</p></a>
-          </v-card>
-          </v-hover>
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-hover v-slot:default="{ hover }">
-            <v-card href='/capabilities'
-              :elevation="hover ? 12 : 2" class="home-card">
-              <v-img
-                src="../assets/microscope.png"
-                class='home-card-image'
-                contain
-              />
-              <a class='home-card-text'>
-            <h3 >Professional Precision</h3>
-            <p
-              
-            >Tighter manufacturing tollerances than competing prototyping services.</p></a>
-          </v-card>
-          </v-hover>
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-hover v-slot:default="{ hover }">
-            <v-card href='/about'
-              :elevation="hover ? 12 : 2" class="home-card">
-              <v-img
-                src="../assets/michigan.png"
-                class='home-card-image'
-                contain
-              />
-              <a class='home-card-text'>
-            <h3 >Midwestern Made</h3>
-            <p
-              
-            >Get faster and cheaper shipping, without sacrificing quality, by ordering from us here in Michigan.</p></a>
-          </v-card>
-          </v-hover>
-        </v-col>
-      </v-row>
+        <v-row>
+          <v-col cols="12" md="4">
+            <v-hover v-slot:default="{ hover }">
+              <v-card href="/support" :elevation="hover ? 12 : 2" class="home-card">
+                <v-img src="../assets/fast.png" class="home-card-image" contain />
+                <a class="home-card-text">
+                  <h3>Lightning Fast Manufacturing</h3>
+                  <p>Get your boards manufactured in under 24 hours.</p>
+                </a>
+              </v-card>
+            </v-hover>
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-hover v-slot:default="{ hover }">
+              <v-card href="/capabilities" :elevation="hover ? 12 : 2" class="home-card">
+                <v-img src="../assets/microscope.png" class="home-card-image" contain />
+                <a class="home-card-text">
+                  <h3>Professional Precision</h3>
+                  <p>Tighter manufacturing tollerances than competing prototyping services.</p>
+                </a>
+              </v-card>
+            </v-hover>
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-hover v-slot:default="{ hover }">
+              <v-card href="/about" :elevation="hover ? 12 : 2" class="home-card">
+                <v-img src="../assets/michigan.png" class="home-card-image" contain />
+                <a class="home-card-text">
+                  <h3>Midwestern Made</h3>
+                  <p>Get faster and cheaper shipping, without sacrificing quality, by ordering from us here in Michigan.</p>
+                </a>
+              </v-card>
+            </v-hover>
+          </v-col>
+        </v-row>
       </v-container>
     </div>
     <Bottom />
@@ -73,6 +55,7 @@
 <script>
 import Appbar from "../components/Appbar.vue";
 import Bottom from "../components/Bottom.vue";
+
 export default {
   data() {
     return {
@@ -103,7 +86,7 @@ export default {
   height: 400px;
   padding: 10px;
 }
-.home-card-text{
+.home-card-text {
   text-align: center;
   display: block;
 }
@@ -112,9 +95,8 @@ export default {
   position: absolute;
   bottom: 0;
 }
-.home-card-image{
-  height:250px;
-  
+.home-card-image {
+  height: 250px;
 }
 .display-2 {
   white-space: pre-wrap;
@@ -127,7 +109,7 @@ export default {
   right: 2%;
   bottom: 2%;
 }
-.quaternary{
-  width:100%;
+.quaternary {
+  width: 100%;
 }
 </style>

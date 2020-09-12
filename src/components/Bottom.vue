@@ -1,22 +1,4 @@
 <template>
-  <!-- <footer class="tertiary">
-
-      <ul class="center">
-        <br />
-        <h4>Help</h4>
-        <a href="/capabilities">Capabilities</a>
-        <br />
-        <a href="/support">Support</a>
-      </ul>
-      <ul class="center">
-        <br />
-        <h4>Services</h4>
-        <a href="/order">PCB Prototyping</a>
-        <br />
-        <a href="/status">Order Status</a>
-      </ul>
-    </div>
-  </footer>-->
   <footer class="accent">
     <ul class="footer-list-top">
       <li>

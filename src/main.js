@@ -14,6 +14,18 @@ Vue.config.productionTip = false;
 
 Vue.use(VueLocalStorage);
 
+//global vars
+Vue.prototype.$cart = []
+Vue.prototype.$cart_key = 1
+Vue.prototype.$firstName = "";
+Vue.prototype.$lastName = "";
+Vue.prototype.$email = "";
+Vue.prototype.$address = "";
+Vue.prototype.$city = "";
+Vue.prototype.$state = "";
+Vue.prototype.$zip = 0;
+Vue.prototype.$shippingPrice = 0;
+
 new Vue({
   router,
   vuetify,

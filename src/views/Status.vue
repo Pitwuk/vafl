@@ -49,20 +49,13 @@
         <v-col cols="12" md="6">
           <v-card class="accent">
             <h3 align="center">Order Details:</h3>
-            <v-img
-              contain
-              :src="BASE_URL+'/files/images/'+orderNum+'.png'"
-              max-height="500"
-            />
+            <v-img contain :src="BASE_URL+'/files/images/'+orderNum+'.png'" max-height="500" />
             <p>Quantity: {{quantity}}pcs</p>
             <p>Speed: {{speed}}</p>
             <p>Color: {{color}}</p>
             <p>Layers: {{layers}}</p>
             <p v-if="request">Custom Request: {{request}}</p>
-            <form
-              method="get"
-              :action="BASE_URL+'/files/gerbers/'+orderNum+'.zip'"
-            >
+            <form method="get" :action="BASE_URL+'/files/gerbers/'+orderNum+'.zip'">
               <v-btn type="submit">Download Files</v-btn>
             </form>
           </v-card>
@@ -75,8 +68,7 @@
 
 <script>
 import Appbar from "../components/Appbar.vue";
-import globals from "../globals.js";
-const BASE_URL = 'http://127.0.0.1:8000'
+const BASE_URL = "http://127.0.0.1:8000";
 
 //test order num: a3a7l3rpeljixdm1
 export default {
@@ -107,10 +99,7 @@ export default {
         //http file post
         const axios = require("axios");
 
-        const response = await axios.put(
-          BASE_URL+"/api/orders/",
-          formData
-        );
+        const response = await axios.put(BASE_URL + "/api/orders/", formData);
 
         var orderData = response.data
           .substring(1, response.data.length - 1)
