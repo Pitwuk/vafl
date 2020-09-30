@@ -1,6 +1,12 @@
 <template >
-  <v-app-bar max-height="70" elevate-on-scroll dark color="primary">
-    <v-img src="../assets/whiteLogo.png" contain max-height="50" @click="home()" id="bar" />
+  <v-app-bar max-height="70" elevation="12" dark color="primary">
+    <v-img
+      src="../assets/whiteLogo.png"
+      contain
+      max-height="50"
+      @click="home()"
+      id="bar"
+    />
     <v-toolbar-items>
       <v-menu rounded="b-xl" offset-y :close-on-content-click="false">
         <template v-slot:activator="{ attrs, on }">
@@ -9,17 +15,30 @@
           </v-btn>
         </template>
 
-        <v-list :key="$cart_key">
+        <v-list :key="$cart_key" max-height="700">
           <v-list-item v-for="item in $cart.slice(1)" :key="item">
             <v-list-item-title v-text="item.name"></v-list-item-title>
             <v-list-item-title
-              v-text="'$'+(item.name=='PCB Prototyping Service'?(item.price/item.quantity):item.price).toFixed(2)"
+              v-text="
+                '$' +
+                (item.name == 'PCB Prototyping Service'
+                  ? item.price / item.quantity
+                  : item.price
+                ).toFixed(2)
+              "
             ></v-list-item-title>
-            <v-list-item-title v-text="'x '+item.quantity"></v-list-item-title>
+            <v-list-item-title
+              v-text="'x ' + item.quantity"
+            ></v-list-item-title>
             <v-btn icon @click="removeItem($cart.indexOf(item))">
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-list-item>
+          <v-list-item>
+            <v-btn class="checkout_button" color="primary" to="/purchase"
+              >Checkout</v-btn
+            ></v-list-item
+          >
         </v-list>
       </v-menu>
 
@@ -58,5 +77,9 @@ export default {
   margin-bottom: auto;
   padding-top: 10px;
   padding-bottom: 10px;
+}
+.checkout_button {
+  position: absolute;
+  right: 10px;
 }
 </style>

@@ -7,9 +7,9 @@
       <li>
         <a href="/order" class="footer-item">PCB Prototyping</a>
       </li>
-      <li>
+      <!-- <li>
         <a href="/store" class="footer-item">Store</a>
-      </li>
+      </li> -->
       <li>
         <a href="/status" class="footer-item">Order Status</a>
       </li>

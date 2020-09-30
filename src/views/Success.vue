@@ -1,40 +1,49 @@
 <template>
-<body class="quaternary">
-  <Appbar />
-  <div align="center">
-    <v-icon size="200" color="green">mdi-checkbox-marked-circle-outline</v-icon>
-    <h1>Order Successfully Placed</h1>
-  </div>
-  <v-container>
-    <v-row>
-      <v-col cols="12" md="6">
-        <v-card class="accent">
-          <h3 align="center">Order Summary:</h3>
-          <p>Boards: ${{boardPrice.toFixed(2)}}</p>
-          <p>Shipping: ${{shippingPrice}}</p>
-          <h4 id="total">Total: ${{(parseFloat(boardPrice)+parseFloat(shippingPrice)).toFixed(2)}}</h4>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="6">
-        <v-card class="accent">
-          <h3 align="center">Details:</h3>
-          <v-img contain :src="BASE_URL+'/api/images/'+orderNum+'.png'" max-height="500" />
-          <p>Quantity: {{quantity}}pcs</p>
-          <p>Size: {{width}} x {{height}}mm</p>
-          <p>Speed: {{speed}}</p>
-          <p>Color: {{color}}</p>
-          <p>Layers: {{layers}}</p>
-          <p v-if="request">Custom Request: {{request}}</p>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
-</body>
+  <body class="quaternary">
+    <Appbar />
+    <div align="center">
+      <v-icon size="200" color="green"
+        >mdi-checkbox-marked-circle-outline</v-icon
+      >
+      <h1>Order Successfully Placed</h1>
+    </div>
+    <v-container>
+      <v-row>
+        <v-col cols="12" md="6">
+          <v-card class="accent">
+            <h3 align="center">Order Summary:</h3>
+            <p>Boards: ${{ boardPrice.toFixed(2) }}</p>
+            <p>Shipping: ${{ shippingPrice }}</p>
+            <h4 id="total">
+              Total: ${{
+                (parseFloat(boardPrice) + parseFloat(shippingPrice)).toFixed(2)
+              }}
+            </h4>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-card class="accent">
+            <h3 align="center">Details:</h3>
+            <v-img
+              contain
+              :src="$baseUrl + '/api/images/' + orderNum + '.png'"
+              max-height="500"
+            />
+            <p>Quantity: {{ quantity }}pcs</p>
+            <p>Size: {{ width }} x {{ height }}mm</p>
+            <p>Speed: {{ speed }}</p>
+            <p>Color: {{ color }}</p>
+            <p>Layers: {{ layers }}</p>
+            <p v-if="request">Custom Request: {{ request }}</p>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+  </body>
 </template>
 
 <script>
 import Appbar from "../components/Appbar.vue";
-const BASE_URL = "127.0.0.1:8000";
 export default {
   data: () => ({
     // boardPrice: globals.price,

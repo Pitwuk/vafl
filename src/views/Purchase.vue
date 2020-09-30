@@ -3,19 +3,19 @@
     <v-stepper v-model="e1">
       <v-stepper-header class="primary">
         <v-stepper-step :complete="e1 > 1" step="1">
-          <span style="color:white">Shipping Information</span>
+          <span style="color: white">Shipping Information</span>
         </v-stepper-step>
 
         <v-divider color="grey"></v-divider>
 
         <v-stepper-step :complete="e1 > 2" step="2">
-          <span style="color:white">Shipping Method</span>
+          <span style="color: white">Shipping Method</span>
         </v-stepper-step>
 
         <v-divider color="grey"></v-divider>
 
         <v-stepper-step color="grey" step="3">
-          <span style="color:white">Billing</span>
+          <span style="color: white">Billing</span>
         </v-stepper-step>
       </v-stepper-header>
 
@@ -46,15 +46,30 @@
               </v-row>
               <v-row>
                 <v-col cols="12" md="8">
-                  <v-text-field v-model="email" :rules="emailRules" label="E-mail" required></v-text-field>
+                  <v-text-field
+                    v-model="email"
+                    :rules="emailRules"
+                    label="E-mail"
+                    required
+                  ></v-text-field>
                 </v-col>
               </v-row>
               <v-row>
                 <v-col cols="12" md="4">
-                  <v-text-field v-model="address" :rules="addressRules" label="Address" required></v-text-field>
+                  <v-text-field
+                    v-model="address"
+                    :rules="addressRules"
+                    label="Address"
+                    required
+                  ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="4">
-                  <v-text-field v-model="city" :rules="cityRules" label="City" required></v-text-field>
+                  <v-text-field
+                    v-model="city"
+                    :rules="cityRules"
+                    label="City"
+                    required
+                  ></v-text-field>
                 </v-col>
               </v-row>
               <v-row>
@@ -80,29 +95,46 @@
             </v-container>
           </v-form>
 
-          <v-btn color="primary" @click="valid ? calculateShipping() : null">Continue</v-btn>
+          <v-btn color="primary" @click="valid ? calculateShipping() : null"
+            >Continue</v-btn
+          >
 
           <v-btn text to="/order">Cancel</v-btn>
         </v-stepper-content>
 
         <v-stepper-content step="2">
-          <v-progress-circular indeterminate color="accent" v-if="loading"></v-progress-circular>
+          <v-progress-circular
+            indeterminate
+            color="accent"
+            v-if="loading"
+          ></v-progress-circular>
           <v-list>
             <v-list-item-group v-model="shippingMethod" color="primary">
-              <v-list-item v-for="(shippingMethod, i) in shippingRates" :key="i">
+              <v-list-item
+                v-for="(shippingMethod, i) in shippingRates"
+                :key="i"
+              >
                 <v-list-item-content>
-                  <v-list-item-title v-text="[...shippingMethod.amount][0]"></v-list-item-title>
+                  <v-list-item-title
+                    v-text="[...shippingMethod.amount][0]"
+                  ></v-list-item-title>
                 </v-list-item-content>
 
                 <v-list-item-content>
-                  <v-list-item-title v-text="shippingMethod.estimated_days"></v-list-item-title>
+                  <v-list-item-title
+                    v-text="shippingMethod.estimated_days"
+                  ></v-list-item-title>
                 </v-list-item-content>
 
                 <v-list-item-content>
-                  <v-list-item-title v-text="shippingMethod.provider"></v-list-item-title>
+                  <v-list-item-title
+                    v-text="shippingMethod.provider"
+                  ></v-list-item-title>
                 </v-list-item-content>
                 <v-list-item-content>
-                  <v-list-item-title v-text="shippingMethod.servicelevel.name"></v-list-item-title>
+                  <v-list-item-title
+                    v-text="shippingMethod.servicelevel.name"
+                  ></v-list-item-title>
                 </v-list-item-content>
 
                 <v-list-item-icon>
@@ -124,21 +156,33 @@
               <v-list>
                 <v-list-item v-for="item in $cart.slice(1)" :key="item">
                   <v-list-item-title v-text="item.name"></v-list-item-title>
-                  <v-list-item-title v-text="'x '+item.quantity"></v-list-item-title>
                   <v-list-item-title
-                    v-text="'$'+(item.name=='PCB Prototyping Service'?(item.price/item.quantity):item.price).toFixed(2)"
+                    v-text="'x ' + item.quantity"
+                  ></v-list-item-title>
+                  <v-list-item-title
+                    v-text="
+                      '$' +
+                      (item.name == 'PCB Prototyping Service'
+                        ? item.price / item.quantity
+                        : item.price
+                      ).toFixed(2)
+                    "
                   ></v-list-item-title>
                 </v-list-item>
                 <v-list-item v-for="item in $cart.slice(1)" :key="item">
                   <v-list-item-title>Shipping:</v-list-item-title>
                   <v-list-item-title></v-list-item-title>
-                  <v-list-item-title v-text="'$'+$shippingPrice.toFixed(2)"></v-list-item-title>
+                  <v-list-item-title
+                    v-text="'$' + $shippingPrice.toFixed(2)"
+                  ></v-list-item-title>
                 </v-list-item>
                 <v-divider></v-divider>
                 <v-list-item v-for="item in $cart.slice(1)" :key="item">
                   <v-list-item-title>Total:</v-list-item-title>
                   <v-list-item-title></v-list-item-title>
-                  <v-list-item-title v-text="'$'+totalCost.toFixed(2)"></v-list-item-title>
+                  <v-list-item-title
+                    v-text="'$' + totalCost.toFixed(2)"
+                  ></v-list-item-title>
                 </v-list-item>
               </v-list>
               <v-row>
@@ -237,7 +281,10 @@
                 </v-col>
               </v-row>
               <v-divider></v-divider>
-              <a style="text-decoration: none" href="https://stripe.com/privacy">
+              <a
+                style="text-decoration: none"
+                href="https://stripe.com/privacy"
+              >
                 Powered by
                 <svg focusable="false" width="33" height="15">
                   <g fill-rule="evenodd">
@@ -249,12 +296,17 @@
               </a>
             </v-container>
           </v-form>
-          <v-progress-circular indeterminate color="accent" v-if="loading"></v-progress-circular>
+          <v-progress-circular
+            indeterminate
+            color="accent"
+            v-if="loading"
+          ></v-progress-circular>
           <v-btn
             color="primary"
             :disabled="stripeCheck || !valid"
             @click="valid ? createToken() : null"
-          >Submit</v-btn>
+            >Submit</v-btn
+          >
 
           <v-btn text @click="e1 = 2">Back</v-btn>
         </v-stepper-content>
@@ -265,8 +317,6 @@
 
 <script>
 import { mask } from "vue-the-mask";
-
-const BASE_URL = "http://127.0.0.1:8000";
 
 export default {
   data: () => ({
@@ -555,7 +605,7 @@ export default {
               parseFloat(this.productPrice) + parseFloat(this.$shippingPrice),
           };
           axios
-            .post(BASE_URL + "/api/charge/", payload)
+            .post(this.$baseUrl + "/api/charge/", payload)
             .then(() => {
               //put info to api
 
@@ -582,9 +632,11 @@ export default {
                 //http file post
                 const axios = require("axios");
 
-                axios.post(BASE_URL + "/api/orders/", formData).then(() => {
-                  this.$router.push({ path: "/success" });
-                });
+                axios
+                  .post(this.$baseUrl + "/api/orders/", formData)
+                  .then(() => {
+                    this.$router.push({ path: "/success" });
+                  });
               } catch (e) {
                 console.error(e);
                 this.failed = true;

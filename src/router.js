@@ -44,6 +44,11 @@ export default new Router({
       component: () => import("./views/Capabilities.vue"),
     },
     {
+      path: "/design-rules",
+      name: "design-rules",
+      component: () => import("./views/Design.vue"),
+    },
+    {
       path: "/support",
       name: "support",
       component: () => import("./views/Support.vue"),

@@ -10,7 +10,7 @@ import base64
 import os
 import shutil
 from PIL import Image
-from gerber_renderer import renderer
+from gerber_renderer import Gerber
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPM
 import stripe
@@ -35,22 +35,12 @@ def files(request):
             fs.save(orderNum, uploaded_file)
             
             #render board svgs
-            board = renderer.Gerber('./orders/gerbers/'+orderNum, verbose=True)
+            board = Gerber.Board('./orders/gerbers/'+orderNum, verbose=True)
+            board.render(output='./gerber_files')
 
             #get board dimensions
             width = board.get_dimensions()[0]
             height = board.get_dimensions()[1]
-
-            # # stack svgs
-            # combined = sg.fromfile('./gerber_files/top.svg')
-            # bottom = sg.fromfile('./gerber_files/bottom.svg').getroot()
-            # #move bottom
-            # if(width <= height*2):
-            #     bottom.moveto(width*board.get_dimensions()[2], 0)
-            # else:
-            #     bottom.moveto(0, height*board.get_dimensions()[2])
-            # combined.append(bottom)
-            # combined.save('./orders/images/'+orderNum[:-4] + '.svg')
 
             #convert to png
             drawing = svg2rlg('./gerber_files/top.svg')

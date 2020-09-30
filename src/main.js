@@ -15,8 +15,9 @@ Vue.config.productionTip = false;
 Vue.use(VueLocalStorage);
 
 //global vars
-Vue.prototype.$cart = []
-Vue.prototype.$cart_key = 1
+Vue.prototype.$baseUrl = "http://127.0.0.1:8000";
+Vue.prototype.$cart = [];
+Vue.prototype.$cart_key = 1;
 Vue.prototype.$firstName = "";
 Vue.prototype.$lastName = "";
 Vue.prototype.$email = "";

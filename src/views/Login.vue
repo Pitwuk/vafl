@@ -10,14 +10,23 @@
 
             <v-card-text>
               <v-form>
-                <v-text-field v-model="login" label="Username" prepend-icon="mdi-account" />
+                <v-text-field
+                  v-model="login"
+                  label="Username"
+                  prepend-icon="mdi-account"
+                />
                 <v-text-field
                   v-model="password"
                   label="Password"
                   prepend-icon="mdi-lock"
                   type="password"
                 />
-                <v-alert transition="scale-transition" type="error" :value="!!alert">{{ alert }}</v-alert>
+                <v-alert
+                  transition="scale-transition"
+                  type="error"
+                  :value="!!alert"
+                  >{{ alert }}</v-alert
+                >
               </v-form>
             </v-card-text>
 
@@ -41,7 +50,7 @@
         <template v-slot:item.download="{ item }">
           <form
             method="get"
-            :action="'http://toasterwaffles.ddns.net/files/gerbers/'+item.orderNum+'.zip'"
+            :action="$baseUrl + '/files/gerbers/' + item.orderNum + '.zip'"
           >
             <v-btn type="submit">
               <v-icon>mdi-download</v-icon>
@@ -95,7 +104,7 @@ export default {
       console.log(formData);
 
       const response = await axios.post(
-        "http://toasterwaffles.ddns.net/api/admin/",
+        this.$baseUrl + "/api/admin/",
         formData
       );
 
