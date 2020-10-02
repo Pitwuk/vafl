@@ -2,10 +2,10 @@
   <body class="quaternary">
     <Appbar />
     <v-form v-model="valid">
-      <v-container>
+      <v-container class="container">
         <v-row>
           <v-col cols="8">
-            <v-card>
+            <v-card class="card">
               <v-card-title>
                 <h2 class="display-1">Order PCB</h2>
               </v-card-title>
@@ -60,6 +60,7 @@
                       :rules="widthRules"
                       label="Width (mm)"
                       required
+                      readonly
                       @change="updatePrice"
                     ></v-text-field>
                   </v-col>
@@ -70,6 +71,7 @@
                       :rules="heightRules"
                       label="Height (mm)"
                       required
+                      readonly
                       @change="updatePrice"
                     ></v-text-field>
                   </v-col>
@@ -138,6 +140,36 @@
               </v-card-text>
 
               <v-card-text>
+                <span class="subheading">Silkscreen</span>
+
+                <v-chip-group
+                  v-model="order.silk"
+                  active-class="secondary"
+                  mandatory
+                  @change="updatePrice"
+                >
+                  <v-tooltip
+                    top
+                    :disabled="silk == 'None' || order.speed == 'Turbo'"
+                    v-for="silk in silkOpt"
+                    :key="silk"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-chip
+                        :disabled="silk == 'White' || silk == 'Black'"
+                        v-bind="attrs"
+                        v-on="on"
+                        :value="silk"
+                      >
+                        {{ silk }}
+                      </v-chip>
+                    </template>
+                    <span>+$0.50</span>
+                  </v-tooltip>
+                </v-chip-group>
+              </v-card-text>
+
+              <v-card-text>
                 <span class="subheading">Layers</span>
 
                 <v-chip-group
@@ -166,7 +198,7 @@
           </v-col>
 
           <v-col>
-            <v-card>
+            <v-card class="card">
               <v-card-title>
                 <h2 class="display-1">Price</h2>
               </v-card-title>
@@ -234,12 +266,13 @@
         </v-row>
       </v-container>
     </v-form>
+    <Bottom />
   </body>
 </template>
 
 <script>
-import { mkdir } from "fs/promises";
 import Appbar from "../components/Appbar.vue";
+import Bottom from "../components/Bottom.vue";
 
 var pricePerCm = 0.1;
 var sale = 1; //(.9 = 10% off)
@@ -262,9 +295,11 @@ export default {
       quantity: "1",
       speed: "Economy",
       color: "Any",
+      silk: "None",
       layers: "2",
       request: "",
       price: 0,
+      stage: "Processing",
     },
     quantRules: [
       (value) => !!value || "Required",
@@ -289,6 +324,7 @@ export default {
     layerOpt: ["1", "2"],
     speeds: ["Economy", "Fast", "Turbo"],
     colors: ["White", "Blue", "Red", "Any"],
+    silkOpt: ["White", "Black", "None"],
   }),
   methods: {
     updatePrice() {
@@ -398,6 +434,12 @@ export default {
       console.log(this.$cart);
     },
   },
-  components: { Appbar },
+  components: { Appbar, Bottom },
 };
 </script>
+
+<style scoped>
+.container {
+  padding-bottom: 10%;
+}
+</style>

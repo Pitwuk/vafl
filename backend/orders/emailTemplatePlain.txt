@@ -1,3 +1,5 @@
 Thank you for ordering from VAFL PCB.
 
-You can check the status of your order at vaflpcb.com/status
+Order Number: X--XX--XX--XX--X
+
+You can check the status of your order at https://www.vaflpcb.com/status?o=X--XX--XX--XX--X

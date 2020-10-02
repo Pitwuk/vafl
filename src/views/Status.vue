@@ -1,7 +1,7 @@
 <template>
-  <body class="accent">
+  <body class="quaternary">
     <Appbar />
-    <v-container v-if="!quantity">
+    <v-container v-if="!loaded">
       <v-row align="center" justify="center">
         <v-col cols="12" sm="8" md="4">
           <v-card class="elevation-12">
@@ -34,25 +34,44 @@
         </v-col>
       </v-row>
     </v-container>
-    <v-container v-if="quantity">
+    <v-container v-if="loaded">
       <v-container>
-        <v-row>
+        <v-row v-for="item in board_arr" :key="item">
           <v-col cols="12" md="6">
-            <v-card class="accent">
+            <v-card>
               <v-timeline>
-                <v-timeline-item :color="stage >= 1 ? 'green' : 'grey'"
+                <v-timeline-item
+                  :color="
+                    item.stage == 'Delivered' ||
+                    item.stage == 'In Transit' ||
+                    item.stage == 'Manufacturing' ||
+                    item.stage == 'Processing'
+                      ? 'green'
+                      : 'grey'
+                  "
                   >Processing</v-timeline-item
                 >
                 <v-timeline-item
-                  :color="stage >= 2 ? 'green' : 'grey'"
+                  :color="
+                    item.stage == 'Delivered' ||
+                    item.stage == 'In Transit' ||
+                    item.stage == 'Manufacturing'
+                      ? 'green'
+                      : 'grey'
+                  "
                   class="text-right"
                   >Manufacturing</v-timeline-item
                 >
-                <v-timeline-item :color="stage >= 3 ? 'green' : 'grey'"
+                <v-timeline-item
+                  :color="
+                    item.stage == 'Delivered' || item.stage == 'In Transit'
+                      ? 'green'
+                      : 'grey'
+                  "
                   >In Transit</v-timeline-item
                 >
                 <v-timeline-item
-                  :color="stage >= 4 ? 'green' : 'grey'"
+                  :color="item.stage == 'Delivered' ? 'green' : 'grey'"
                   class="text-right"
                   >Delivered</v-timeline-item
                 >
@@ -60,47 +79,50 @@
             </v-card>
           </v-col>
           <v-col cols="12" md="6">
-            <v-card class="accent">
-              <h3 align="center">Order Details:</h3>
+            <v-card class="board">
+              <h2 align="center">{{ item.name }}:</h2>
+              <v-divider></v-divider>
               <v-img
                 contain
-                :src="$baseUrl + '/files/images/' + orderNum + '.png'"
-                max-height="500"
+                :src="$baseUrl + '/files/images/' + item.orderNum + '.png'"
+                max-height="200"
               />
-              <p>Quantity: {{ quantity }}pcs</p>
-              <p>Speed: {{ speed }}</p>
-              <p>Color: {{ color }}</p>
-              <p>Layers: {{ layers }}</p>
-              <p v-if="request">Custom Request: {{ request }}</p>
+              <v-divider></v-divider>
+              <p>Quantity: {{ item.quantity }}pcs</p>
+              <p>
+                Size: {{ item.width.toFixed(2) }} x
+                {{ item.height.toFixed(2) }}mm
+              </p>
+              <p>Speed: {{ item.speed }}</p>
+              <p>Color: {{ item.color }}</p>
+              <p>Silkscreen: {{ item.silk }}</p>
+              <p>Layers: {{ item.layers }}</p>
+              <p v-if="item.request">Custom Request: {{ item.request }}</p>
               <form
                 method="get"
-                :action="$baseUrl + '/files/gerbers/' + orderNum + '.zip'"
+                :action="$baseUrl + '/files/gerbers/' + item.orderNum + '.zip'"
               >
-                <v-btn type="submit">Download Files</v-btn>
+                <v-btn color="primary" type="submit">Download Files</v-btn>
               </form>
             </v-card>
           </v-col>
         </v-row>
       </v-container>
     </v-container>
+    <Bottom />
   </body>
 </template>
 
 <script>
 import Appbar from "../components/Appbar.vue";
+import Bottom from "../components/Bottom.vue";
 
-//test order num: a3a7l3rpeljixdm1
 export default {
   data: () => ({
     failed: false,
     valid: false,
-    stage: 0,
-    orderNum: "",
-    quantity: 0,
-    speed: "",
-    color: "",
-    layers: 0,
-    request: "",
+    loaded: false,
+    board_arr: [],
     orderRules: [
       (value) => !!value || "Required",
       (value) => value.length == 16 || "Must be 16 characters",
@@ -126,15 +148,22 @@ export default {
         var orderData = response.data
           .substring(1, response.data.length - 1)
           .split('", "');
-        console.log(orderData);
-        this.quantity = orderData[8];
-        this.speed = orderData[9];
-        this.color = orderData[10];
-        this.layers = orderData[11];
-        if (orderData[14] == 'Placed"') this.stage = 1;
-        else if (orderData[14] == 'Manufacturing"') this.stage = 2;
-        else if (orderData[14] == 'Shipped"') this.stage = 3;
-        else if (orderData[14] == 'Delivered"') this.stage = 4;
+
+        var boards = orderData[9]
+          .substring(11, orderData[9].length - 1)
+          .replace(/"/g, "")
+          .replace(/'/g, '"')
+          .replace(/},/g, "},***")
+          .split(",***");
+        for (let i = 0; i < boards.length; i++) {
+          this.board_arr.push(JSON.parse(boards[i]));
+        }
+        this.loaded = true;
+
+        // if (orderData[14] == 'Placed"') this.stage = 1;
+        // else if (orderData[14] == 'Manufacturing"') this.stage = 2;
+        // else if (orderData[14] == 'Shipped"') this.stage = 3;
+        // else if (orderData[14] == 'Delivered"') this.stage = 4;
       } catch (e) {
         console.error(e);
         this.loading = false;
@@ -142,7 +171,16 @@ export default {
       }
     },
   },
-  components: { Appbar },
+  beforeMount() {
+    var sPageURL = window.location.search.substring(1);
+    var index = sPageURL.indexOf("o");
+    if (index != -1) {
+      this.orderNum = sPageURL.substring(index + 2);
+      console.log(this.orderNum);
+      this.checkStatus();
+    }
+  },
+  components: { Appbar, Bottom },
 };
 </script>
 
@@ -155,5 +193,8 @@ p {
 }
 #error {
   color: red;
+}
+.board {
+  padding: 10px;
 }
 </style>

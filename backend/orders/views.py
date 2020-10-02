@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
+from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.http.multipartparser import MultiPartParser
 from django.http import HttpResponse, JsonResponse
@@ -21,6 +22,8 @@ import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import mysql.connector
+from datetime import datetime
+import copy
 
 
 @csrf_exempt
@@ -94,36 +97,38 @@ def order_data(request):
     if request.method == 'POST':
         body = json.loads(request.body)
         try:
-            mydb = mysql.connector.connect(
-                host="localhost",
-                user="root",
-                password=config('MYSQL_PASS'),
-                database='vafl'
-            )
-            mycursor = mydb.cursor()
-            mycursor.execute(
-                'INSERT INTO orders (orderNum, first_name, last_name, email, address, city, state, zipCode, quantity, speed, color, layers, request, status) VALUES('+str(body.values())[13:-2]+',\'Placed\')')
-
-            mydb.commit()
-            mycursor.execute(
-                "SELECT * FROM orders WHERE orderNum = '"+body['orderNum']+"'")
-
-            for x in mycursor:
-                print(x)
+            order = Order()
+            order.orderNum = body['orderNum']
+            order.first = body['first_name']
+            order.last = body['last_name']
+            order.email = body['email']
+            order.address = body['address']
+            order.city = body['city']
+            order.state = body['state']
+            order.zipCode = body['zipCode']
+            order.boards = str(body['boards'])
+            print(str(body['boards']))
+            order.save()
             print('order added to database')
         except Exception as e:
             print(e)
-            print('error making sql query')
+            print('error adding order to database')
         try:
+            #email order confirmation
             msg = MIMEMultipart("alternative")
             msg['Subject'] = 'VAFL PCB Order Success'
             msg['From'] = 'vaflpcb@gmail.com'
             msg['To'] = body['email']
 
             with open('./orders/emailTemplatePlain.txt') as template:
-                plain = MIMEText(template.read(), "plain")
+                template = template.read()
+                template = template.replace('X--XX--XX--XX--X', body['orderNum'])
+                plain = MIMEText(template, "plain")
             with open('./orders/emailTemplateHTML.txt') as template:
-                fancy = MIMEText(template.read(), "html")
+                template = template.read()
+                template = template.replace('X--XX--XX--XX--X', body['orderNum'])
+                fancy = MIMEText(template, "html")
+                
             msg.attach(plain)
             msg.attach(fancy)
 
@@ -143,26 +148,15 @@ def order_data(request):
 
         return HttpResponse(status=200)
     elif request.method == 'PUT':
+        #get order
         body = json.loads(request.body)
         try:
-            mydb = mysql.connector.connect(
-                host="localhost",
-                user="root",
-                password=config('MYSQL_PASS'),
-                database='vafl'
-            )
-            mycursor = mydb.cursor()
-            mycursor.execute(
-                "SELECT * FROM orders WHERE orderNum = '"+body['orderNum']+"'")
-
-            order_arr = []
-            for x in mycursor:
-                order_arr = list(x)
-                print('order found')
-            
-            order_arr[15] = str(order_arr[15])
-            response_object = json.dumps(order_arr)
-
+            for p in Order.objects.raw('SELECT * FROM orders_order WHERE orderNum ="'+body['orderNum']+'"' ):
+                order = copy.deepcopy(p).__dict__
+            del order['_state']
+            order['datetime']=order['datetime'].strftime("%m/%d/%Y, %H:%M:%S")
+            print(order['boards'])
+            response_object = json.dumps(order)
             return JsonResponse(response_object, safe=False)
 
         except Exception as e:
@@ -177,29 +171,18 @@ def admin(request):
     print(json.loads(request.body))
     if request.method == 'POST' and json.loads(request.body)['password'] == config('ORDER_PASS'):
         try:
-            mydb = mysql.connector.connect(
-                host="localhost",
-                user="root",
-                password=config('MYSQL_PASS'),
-                database='vafl'
-            )
-            mycursor = mydb.cursor()
-            mycursor.execute(
-                "SELECT * FROM orders")
-
             order_arr = []
-            for x in mycursor:
-                temp_order_arr = list(x)
-                temp_order_arr[15] = str(temp_order_arr[15])
-                order_arr.append(temp_order_arr)
-            
-            
+            for p in Order.objects.raw('SELECT * FROM orders_order' ):
+                order = p.__dict__
+                del order['_state']
+                order['datetime']=order['datetime'].strftime("%m/%d/%Y, %H:%M:%S")
+
             response_object = json.dumps(order_arr)
 
             return JsonResponse(response_object, safe=False)
 
         except Exception as e:
             print(e)
-            print('error making sql query')
+            print('error making query')
     else:
         return HttpResponse(status=400)

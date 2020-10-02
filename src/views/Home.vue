@@ -112,7 +112,7 @@
           >
         </v-col>
         <v-col cols="12" md="4">
-          <a href="/capabilities"
+          <a href="/ordersupport"
             ><h2 class="start_subheader">How to Order</h2></a
           >
         </v-col>

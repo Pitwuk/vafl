@@ -4,30 +4,38 @@ from email.mime.multipart import MIMEMultipart
 from decouple import config
 import ssl
 import smtplib
+import importlib.util
+spec = importlib.util.spec_from_file_location(
+    "Order", "models.py")
+Order = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(Order)
 # email test
-try:
-    msg = MIMEMultipart("alternative")
-    msg['Subject'] = 'VAFL PCB Order Success'
-    msg['From'] = 'vaflpcb@gmail.com'
-    msg['To'] = 'plogden2@gmail.com'
+# try:
+#     msg = MIMEMultipart("alternative")
+#     msg['Subject'] = 'VAFL PCB Order Success'
+#     msg['From'] = 'vaflpcb@gmail.com'
+#     msg['To'] = 'plogden2@gmail.com'
 
-    with open('./orders/emailTemplatePlain.txt') as template:
-        plain = MIMEText(template.read(), "plain")
-    with open('./orders/emailTemplate.html') as template:
-        fancy = MIMEText(template.read(), "html")
-    msg.attach(plain)
-    msg.attach(fancy)
+#     with open('./orders/emailTemplatePlain.txt') as template:
+#         plain = MIMEText(template.read(), "plain")
+#     with open('./orders/emailTemplate.html') as template:
+#         fancy = MIMEText(template.read(), "html")
+#     msg.attach(plain)
+#     msg.attach(fancy)
 
-    port = 465
-    password = config('EMAIL_PASSWORD')
+#     port = 465
+#     password = config('EMAIL_PASSWORD')
 
-    context = ssl.create_default_context()
+#     context = ssl.create_default_context()
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-        server.login(msg['From'], password)
-        server.sendmail(msg['From'], msg['To'], msg.as_string())
-        server.quit()
-    print('email sent')
-except Exception as e:
-    print(e)
-    print('error sending email')
+#     with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
+#         server.login(msg['From'], password)
+#         server.sendmail(msg['From'], msg['To'], msg.as_string())
+#         server.quit()
+#     print('email sent')
+# except Exception as e:
+#     print(e)
+#     print('error sending email')
+
+#clear orders
+Order.objects.all().delete()

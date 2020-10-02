@@ -7,8 +7,6 @@ var color = "Any";
 var layers = "2";
 var request = "";
 
-var cart = ["hee", "hee"];
-
 //Personal Info
 var firstName = "";
 var lastName = "";
