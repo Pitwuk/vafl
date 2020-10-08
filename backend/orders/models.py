@@ -12,3 +12,4 @@ class Order(models.Model):
     state = models.CharField(max_length=2, default='')
     zipCode = models.CharField(max_length=5)
     boards = models.CharField(max_length=65536, default ='')
+    shipping = models.CharField(max_length=32, default = "")

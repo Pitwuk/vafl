@@ -10,6 +10,7 @@ import zipfile
 import base64
 import os
 import shutil
+import mimetypes
 from PIL import Image
 from gerber_renderer import Gerber
 from svglib.svglib import svg2rlg
@@ -39,24 +40,9 @@ def files(request):
             
             #render board svgs
             board = Gerber.Board('./orders/gerbers/'+orderNum, verbose=True)
-            board.render(output='./gerber_files')
+            
 
-            #get board dimensions
-            width = board.get_dimensions()[0]
-            height = board.get_dimensions()[1]
-
-            #convert to png
-            drawing = svg2rlg('./gerber_files/top.svg')
-            renderPM.drawToFile(drawing, './gerber_files/top.png', fmt="PNG")
-            drawing = svg2rlg('./gerber_files/bottom.svg')
-            renderPM.drawToFile(drawing, './gerber_files/bottom.png', fmt="PNG")
-
-            #combine pngs
-            concatenate_pcb().save(
-                './orders/images/'+orderNum[:-4] + '.png')
-            shutil.rmtree('./gerber_files')
-
-            return JsonResponse({'width': width, 'height': height})
+            return JsonResponse(board.get_files())
         else:
             return HttpResponse(status=400)
 
@@ -107,7 +93,8 @@ def order_data(request):
             order.state = body['state']
             order.zipCode = body['zipCode']
             order.boards = str(body['boards'])
-            print(str(body['boards']))
+            order.shipping = body['shipping']
+
             order.save()
             print('order added to database')
         except Exception as e:
@@ -124,6 +111,7 @@ def order_data(request):
                 template = template.read()
                 template = template.replace('X--XX--XX--XX--X', body['orderNum'])
                 plain = MIMEText(template, "plain")
+            
             with open('./orders/emailTemplateHTML.txt') as template:
                 template = template.read()
                 template = template.replace('X--XX--XX--XX--X', body['orderNum'])
@@ -137,6 +125,19 @@ def order_data(request):
 
             context = ssl.create_default_context()
 
+            with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
+                server.login(msg['From'], password)
+                server.sendmail(msg['From'], msg['To'], msg.as_string())
+                server.quit()
+
+            #email manufacturing
+            msg = MIMEMultipart("alternative")
+            msg['Subject'] = 'New Order '
+            msg['From'] = 'vaflpcb@gmail.com'
+            msg['To'] = 'vaflpcb@gmail.com'
+            template = str(body['boards'])
+            plain = MIMEText(template, "plain")
+            msg.attach(plain)
             with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
                 server.login(msg['From'], password)
                 server.sendmail(msg['From'], msg['To'], msg.as_string())
@@ -167,15 +168,35 @@ def order_data(request):
         return HttpResponse(status=400)
 
 @csrf_exempt
+def store_image(request):
+    request_body = json.loads(request.body)
+    if request.method == 'POST':
+        try:
+            uploaded_file = request_body['img']
+            orderNum = request_body['orderNum'] + '.svg'
+            img_file = open('./orders/images/'+orderNum, 'w')
+            img_file.write(uploaded_file)
+            img_file.close()
+            # drawing = svg2rlg('./orders/images/'+orderNum)
+            # renderPM.drawToFile(drawing, './orders/images/'+orderNum[:-4]+'.png', fmt="PNG")
+            # os.remove('./orders/images/'+orderNum)
+            return HttpResponse(status=200)
+        except:
+            return HttpResponse(status=400)
+
+
+
+@csrf_exempt
 def admin(request):
-    print(json.loads(request.body))
-    if request.method == 'POST' and json.loads(request.body)['password'] == config('ORDER_PASS'):
+    request_body = json.loads(request.body)
+    if request.method == 'POST' and request_body['password'] == config('ORDER_PASS'):
         try:
             order_arr = []
             for p in Order.objects.raw('SELECT * FROM orders_order' ):
-                order = p.__dict__
+                order = copy.deepcopy(p).__dict__
                 del order['_state']
                 order['datetime']=order['datetime'].strftime("%m/%d/%Y, %H:%M:%S")
+                order_arr.append(order)
 
             response_object = json.dumps(order_arr)
 
@@ -184,5 +205,59 @@ def admin(request):
         except Exception as e:
             print(e)
             print('error making query')
+            return HttpResponse(status=400)
+    elif request.method == 'PUT' and request_body['password'] == config('ORDER_PASS'):
+        if request_body['operation'] == 'adv':
+            try:
+                for p in Order.objects.raw('SELECT * FROM orders_order WHERE orderNum ="'+request_body['parentNum']+'"' ):
+                    order = p.__dict__
+                    order_arr = order['boards'][1:-1].replace('},', '},***').split(',***')
+                    for i, h in enumerate(order_arr):
+                        h = json.loads(h.replace('\'', '"'))
+                        if h['orderNum'] == request_body['orderNum']:
+                            h['stage'] = request_body['stage']
+                            order_arr[i] = json.dumps(h).replace('"', '\'')
+                            break
+                board_str = '['    
+                for m in order_arr:
+                    board_str+= m + ', '
+                board_str = board_str[:-2]+']'
+                Order.objects.filter(orderNum=request_body['parentNum']).update(boards=board_str)
+
+                return HttpResponse(status=200)
+
+            except Exception as e:
+                print(e)
+                print('error making query')
+                return HttpResponse(status=400)
+        elif request_body['operation'] == 'del':
+            for p in Order.objects.raw('SELECT * FROM orders_order WHERE orderNum ="'+request_body['parentNum']+'"' ):
+                    order = p.__dict__
+                    order_arr = order['boards'][1:-1].replace('},', '},***').split(',***')
+                    for i, h in enumerate(order_arr):
+                        h = json.loads(h.replace('\'', '"'))
+                        try:
+                            os.remove(os.path.join('./orders/gerbers', h['orderNum']+'.zip'))
+                        except:
+                            print('gerber not found')
+                        try:
+                            os.remove(os.path.join('./orders/images', h['orderNum']+'.png'))
+                        except:
+                            print('image not found')
+            
+            Order.objects.filter(orderNum=request_body['parentNum']).delete()
+            return HttpResponse(status=200)
+        elif request_body['operation'] == 'clr':
+            Order.objects.all().delete()
+            filelist = [ f for f in os.listdir('./orders/gerbers')]
+            for f in filelist:
+                os.remove(os.path.join('./orders/gerbers', f))
+            filelist = [ f for f in os.listdir('./orders/images')]
+            for f in filelist:
+                os.remove(os.path.join('./orders/images', f))
+            # os.mkdir('./orders/gerbers')
+            # os.mkdir('./orders/images')
+            # shutil.rmtree('./gerber_files')
+            return HttpResponse(status=200)
     else:
         return HttpResponse(status=400)

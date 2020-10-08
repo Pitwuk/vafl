@@ -32,25 +32,30 @@
 
             <v-card-actions class="justify-end pa-4">
               <v-spacer />
-              <v-btn text color="primary" @click="acessar">Login</v-btn>
+              <v-btn text color="primary" @click="access">Login</v-btn>
               <v-btn text to="/">Dismiss</v-btn>
             </v-card-actions>
           </v-card>
         </v-col>
       </v-row>
     </v-container>
-    <v-container v-if="admin" class="fill-height" fluid>
+    <v-container v-if="admin" fluid>
+      <h1>Processing</h1>
       <v-data-table
         dense
-        :headers="headers"
+        v-model="p_selected"
+        show-select
+        single-select
+        :headers="p_headers"
         :items="orders"
-        item-key="datetime"
+        item-key="orderNum"
+        search="Processing"
         class="elevation-1"
       >
         <template v-slot:item.download="{ item }">
           <form
             method="get"
-            :action="$baseUrl + '/files/gerbers/' + item.orderNum + '.zip'"
+            :action="$baseUrl + '/orders/gerbers/' + item.orderNum + '.zip'"
           >
             <v-btn type="submit">
               <v-icon>mdi-download</v-icon>
@@ -58,11 +63,100 @@
           </form>
         </template>
       </v-data-table>
+      <v-btn @click="advanceStage(p_selected[0], 'Manufacturing')"
+        >Advance</v-btn
+      >
     </v-container>
+    <v-container v-if="admin" fluid>
+      <h1>Manufacturing</h1>
+      <v-data-table
+        dense
+        v-model="m_selected"
+        show-select
+        single-select
+        :headers="m_headers"
+        :items="orders"
+        search="Manufacturing"
+        item-key="orderNum"
+        class="elevation-1"
+      >
+        <template v-slot:item.download="{ item }">
+          <form
+            method="get"
+            :action="$baseUrl + '/orders/gerbers/' + item.orderNum + '.zip'"
+          >
+            <v-btn type="submit">
+              <v-icon>mdi-download</v-icon>
+            </v-btn>
+          </form>
+        </template>
+      </v-data-table>
+      <v-btn @click="advanceStage(m_selected[0], 'Processing')">Back</v-btn>
+      <v-btn @click="advanceStage(m_selected[0], 'In Transit')">Advance</v-btn>
+    </v-container>
+    <v-container v-if="admin" fluid>
+      <h1>In Transit</h1>
+      <v-data-table
+        dense
+        v-model="t_selected"
+        show-select
+        single-select
+        :headers="t_headers"
+        :items="orders"
+        item-key="orderNum"
+        search="In Transit"
+        class="elevation-1"
+      >
+        <template v-slot:item.download="{ item }">
+          <form
+            method="get"
+            :action="$baseUrl + '/orders/gerbers/' + item.orderNum + '.zip'"
+          >
+            <v-btn type="submit">
+              <v-icon>mdi-download</v-icon>
+            </v-btn>
+          </form>
+        </template>
+      </v-data-table>
+      <v-btn @click="advanceStage(t_selected[0], 'Manufacturing')">Back</v-btn>
+      <v-btn @click="advanceStage(t_selected[0], 'Delivered')">Advance</v-btn>
+    </v-container>
+    <v-container v-if="admin" fluid>
+      <h1>Delivered</h1>
+      <v-data-table
+        dense
+        v-model="d_selected"
+        show-select
+        single-select
+        :headers="d_headers"
+        :items="orders"
+        item-key="orderNum"
+        search="Delivered"
+        class="elevation-1"
+      >
+        <template v-slot:item.download="{ item }">
+          <form
+            method="get"
+            :action="$baseUrl + '/orders/gerbers/' + item.orderNum + '.zip'"
+          >
+            <v-btn type="submit">
+              <v-icon>mdi-download</v-icon>
+            </v-btn>
+          </form>
+        </template>
+      </v-data-table>
+      <v-btn @click="advanceStage(d_selected[0], 'In Transit')">Back</v-btn>
+      <v-btn @click="advanceStage(d_selected[0], 'DELETE')">Delete Order</v-btn>
+    </v-container>
+    <v-btn @click="advanceStage('CLEAR', 'CLEAR')">Clear Database</v-btn>
+    <input type="hidden" name="csrftoken" value="{%csrf_token%}" />
   </v-main>
 </template>
 
+
 <script>
+const axios = require("axios");
+
 export default {
   data() {
     return {
@@ -70,7 +164,11 @@ export default {
       password: "",
       alert: "",
       admin: false,
-      headers: [
+      p_selected: [],
+      m_selected: [],
+      t_selected: [],
+      d_selected: [],
+      p_headers: [
         {
           text: "DateTime",
           value: "datetime",
@@ -80,13 +178,43 @@ export default {
         { text: "Color", value: "color" },
         { text: "Request", value: "request" },
         { text: "OrderNum", value: "orderNum" },
+        { text: "Stage", value: "stage", sortable: false },
         { text: "Downloads", value: "download", sortable: false },
+      ],
+      m_headers: [
+        {
+          text: "DateTime",
+          value: "datetime",
+        },
+        { text: "Speed", value: "speed" },
+        { text: "OrderNum", value: "orderNum" },
+        { text: "Stage", value: "stage", sortable: false },
+        { text: "Shipping", value: "shipping", sortable: false },
+      ],
+      t_headers: [
+        {
+          text: "DateTime",
+          value: "datetime",
+        },
+        { text: "Speed", value: "speed" },
+        { text: "OrderNum", value: "orderNum" },
+        { text: "Stage", value: "stage", sortable: false },
+        { text: "Shipping", value: "shipping", sortable: false },
+      ],
+      d_headers: [
+        {
+          text: "DateTime",
+          value: "datetime",
+        },
+        { text: "ParentOrderNum", value: "parentOrderNum" },
+        { text: "OrderNum", value: "orderNum" },
+        { text: "Stage", value: "stage", sortable: false },
       ],
       orders: [],
     };
   },
   methods: {
-    acessar() {
+    access() {
       if (
         this.login === "gregorious" &&
         this.password === process.env.VUE_APP_ADMIN_PASS
@@ -98,42 +226,83 @@ export default {
       }
     },
     async getOrders() {
-      const axios = require("axios");
-
       const formData = { password: process.env.VUE_APP_ORDER_PASS };
-      console.log(formData);
 
       const response = await axios.post(
         this.$baseUrl + "/api/admin/",
         formData
       );
-
+      this.orders = [];
       this.responseToDict(response.data);
-      console.log(this.orders);
     },
-    responseToDict(arr) {
-      arr = arr.split("][");
-      console.log(arr);
-      for (let i = 0; i < arr.length; i++) {
-        var temp_arr = arr[i].split(",");
-        this.orders.push({
-          orderNum: temp_arr[1].substring(2, 18),
-          first_name: temp_arr[2],
-          last_name: temp_arr[3],
-          email: temp_arr[4],
-          address: temp_arr[5],
-          city: temp_arr[6],
-          state: temp_arr[7],
-          zipCode: temp_arr[8],
-          quantity: temp_arr[9],
-          speed: temp_arr[10].replace(/"/g, ""),
-          color: temp_arr[11].replace(/"/g, ""),
-          layers: temp_arr[12].replace(/"/g, ""),
-          request: temp_arr[13].replace(/"/g, ""),
-          status: temp_arr[14],
-          datetime: temp_arr[15],
-        });
+    responseToDict(data) {
+      var order_arr = data.split('{"id"');
+      for (let i = 1; i < order_arr.length; i++) {
+        var orderData = order_arr[i]
+          .substring(1, order_arr[i].length - 1)
+          .split(', "');
+
+        var boards = [];
+        var date = orderData[2].replace(/"/g, "");
+        boards.push(date.substring(date.indexOf(": ") + 2));
+        boards.push(
+          orderData[10]
+            .substring(11, orderData[10].length - 2)
+            .replace(/"/g, "")
+            .replace(/'/g, '"')
+            .replace(/},/g, "},***")
+            .split(",***")
+        );
+        var parent = orderData[1].replace(/"/g, "");
+        boards.push(parent.substring(parent.indexOf(": ") + 2));
+        var shipping = orderData[11].replace(/"/g, "");
+        boards.push(shipping.substring(parent.indexOf(": ") + 2));
+
+        for (let j = 0; j < boards[1].length; j++) {
+          this.orders.push(JSON.parse(boards[1][j]));
+          this.orders[this.orders.length - 1]["datetime"] = boards[0];
+          this.orders[this.orders.length - 1]["parentOrderNum"] = boards[2];
+          this.orders[this.orders.length - 1]["shipping"] = boards[3];
+        }
       }
+    },
+    async advanceStage(selected, new_stage) {
+      if (new_stage == "CLEAR") {
+        const formData = {
+          password: process.env.VUE_APP_ORDER_PASS,
+          operation: "clr",
+        };
+
+        const response = await axios.put(
+          this.$baseUrl + "/api/admin/",
+          formData
+        );
+      } else if (new_stage == "DELETE") {
+        const formData = {
+          password: process.env.VUE_APP_ORDER_PASS,
+          operation: "del",
+          parentNum: selected.parentOrderNum,
+        };
+
+        const response = await axios.put(
+          this.$baseUrl + "/api/admin/",
+          formData
+        );
+      } else {
+        const formData = {
+          password: process.env.VUE_APP_ORDER_PASS,
+          operation: "adv",
+          parentNum: selected.parentOrderNum,
+          orderNum: selected.orderNum,
+          stage: new_stage,
+        };
+
+        const response = await axios.put(
+          this.$baseUrl + "/api/admin/",
+          formData
+        );
+      }
+      this.getOrders();
     },
   },
 };

@@ -48,15 +48,20 @@ export default {
   data: () => ({
     questions: [
       {
-        question: "Do you have a certain color of soldermask?",
-        answer:
-          "The colors we have available are those listed on the order page.",
+        question: "How do I create an account?",
+        answer: "Account creation is not currently available.",
       },
       {
         question: "When will you be adding silkcreen overlay?",
         answer:
           "We plan to start shipping boards with overlay by the end of October.",
       },
+      {
+        question: "Do you have a certain color of soldermask?",
+        answer:
+          "The colors we have available are those listed on the order page.",
+      },
+
       {
         question: "Do you offer multilayer PCB fabrication?",
         answer:
@@ -99,10 +104,6 @@ export default {
         answer:
           "Instructions on updating your design software's design rules can be found ",
         link: "/design-rules",
-      },
-      {
-        question: "How do I create an account?",
-        answer: "Account creation is not currently available.",
       },
     ],
   }),

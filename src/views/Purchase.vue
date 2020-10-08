@@ -495,10 +495,10 @@ export default {
       var shippo = require("shippo")(process.env.VUE_APP_SHIPPO_SECRET_KEY);
       var addressFrom = {
         name: "VAFL PCB",
-        street1: "5716 Lakeshore Rd",
-        city: "Fort Gratiot",
+        street1: "Townsend Dr",
+        city: "Houghton",
         state: "MI",
-        zip: "48059",
+        zip: "49931",
         country: "US",
       };
       var addressTo = {
@@ -566,6 +566,17 @@ export default {
       );
       this.shippingRates = shipment.rates;
       this.shippingRates.sort(this.sortShippingRates);
+      if (this.productPrice >= 10) {
+        var freeRate = {
+          amount: ["0.00"],
+          estimated_days: 5,
+          provider: "USPS",
+          servicelevel: { name: "First-Class Package/Mail Parcel" },
+          provider_image_75:
+            "https://shippo-static.s3.amazonaws.com/providers/75/USPS.png",
+        };
+        this.shippingRates.unshift(freeRate);
+      }
     },
     sortShippingRates(a, b) {
       this.loading = false;
@@ -576,46 +587,47 @@ export default {
     },
     handleShipping() {
       this.e1 = 3;
-      this.productPrice = 0;
-      for (let i = 1; i < this.$cart.length; i++) {
-        this.productPrice += this.$cart[i].price;
-      }
+
       this.$shippingPrice = parseFloat(
         this.shippingRates[this.shippingMethod]["amount"]
       );
+      this.$shippingMethod =
+        this.shippingRates[this.shippingMethod]["provider"] +
+        " | " +
+        this.shippingRates[this.shippingMethod]["servicelevel"]["name"];
       this.totalCost = this.$shippingPrice + this.productPrice;
     },
     createToken() {
       this.loading = true;
       this.stripeCheck = true;
       window.Stripe.setPublishableKey(process.env.VUE_APP_STRIPE_PUB_KEY);
-      window.Stripe.createToken(this.card, (status, response) => {
-        if (response.error) {
-          this.stripeCheck = false;
-          this.errors.push(response.error.message);
-          // eslint-disable-next-line
-          console.error(response);
-        } else {
-          const axios = require("axios");
+      try {
+        window.Stripe.createToken(this.card, (status, response) => {
+          if (response.error) {
+            this.stripeCheck = false;
+            this.errors.push(response.error.message);
+            // eslint-disable-next-line
+            console.error(response);
+          } else {
+            const axios = require("axios");
 
-          const payload = {
-            token: response.id,
-            orderNum: this.$cart[0],
-            price:
-              parseFloat(this.productPrice) + parseFloat(this.$shippingPrice),
-          };
-          axios
-            .post(this.$baseUrl + "/api/charge/", payload)
-            .then(() => {
-              //put info to api
+            const payload = {
+              token: response.id,
+              orderNum: this.$cart[0],
+              price:
+                parseFloat(this.productPrice) + parseFloat(this.$shippingPrice),
+            };
+            axios
+              .post(this.$baseUrl + "/api/charge/", payload)
+              .then(() => {
+                //put info to api
 
-              //combine all boards into an arr
-              var boards = [];
-              for (let i = 1; i < this.$cart.length; i++) {
-                boards.push(this.$cart[i]);
-              }
+                //combine all boards into an arr
+                var boards = [];
+                for (let i = 1; i < this.$cart.length; i++) {
+                  boards.push(this.$cart[i]);
+                }
 
-              try {
                 //form data
                 const formData = {
                   orderNum: this.$cart[0],
@@ -627,7 +639,9 @@ export default {
                   state: this.stateAbrev[this.state],
                   zipCode: this.zip,
                   boards: boards,
+                  shipping: this.$shippingMethod,
                 };
+                console.log(this.$shippingMethod);
 
                 //http file post
                 const axios = require("axios");
@@ -637,17 +651,23 @@ export default {
                   .then(() => {
                     this.$router.push({ path: "/success" });
                   });
-              } catch (e) {
-                console.error(e);
-                this.failed = true;
-              }
-            })
-            .catch((error) => {
-              console.error(error);
-            });
-        }
-      });
+              })
+              .catch((error) => {
+                console.error(error);
+              });
+          }
+        });
+      } catch (e) {
+        console.error(e);
+        this.failed = true;
+      }
     },
+  },
+  beforeMount() {
+    this.productPrice = 0;
+    for (let i = 1; i < this.$cart.length; i++) {
+      this.productPrice += this.$cart[i].price;
+    }
   },
   directives: { mask },
 };

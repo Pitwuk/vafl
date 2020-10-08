@@ -83,6 +83,11 @@ export default {
       },
       {
         feature: "Min. Via Diameter",
+        specification: "0.5mm | 20mil",
+        description: "Minimum via size. (drill diameter & annular ring)",
+      },
+      {
+        feature: "Min. Via Drill",
         specification: "0.3mm | 11.811mil",
         description: "Minimum drill size.",
       },
@@ -93,7 +98,7 @@ export default {
       },
       {
         feature: "Min. Hole to Hole Clearance",
-        specification: "0.254mm | 10mil",
+        specification: "0.25mm | 10mil",
         description: "Minimum distance between the edges of the drilled holes.",
       },
     ],

@@ -17,7 +17,7 @@
               ><p>
                 Ensure that your files are in the correct format by following
                 our
-                <a href="/exporting">Exporting Guide.</a>
+                <a href="/export">Exporting Guide.</a>
               </p></v-list-item
             >
             <v-list-item-title>

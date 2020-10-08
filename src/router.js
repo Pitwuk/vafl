@@ -49,6 +49,11 @@ export default new Router({
       component: () => import("./views/Design.vue"),
     },
     {
+      path: "/export",
+      name: "exporting",
+      component: () => import("./views/Exporting.vue"),
+    },
+    {
       path: "/support",
       name: "support",
       component: () => import("./views/Support.vue"),

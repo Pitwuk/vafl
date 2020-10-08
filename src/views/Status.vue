@@ -82,10 +82,8 @@
             <v-card class="board">
               <h2 align="center">{{ item.name }}:</h2>
               <v-divider></v-divider>
-              <v-img
-                contain
-                :src="$baseUrl + '/files/images/' + item.orderNum + '.png'"
-                max-height="200"
+              <img
+                :src="$baseUrl + '/orders/images/' + item.orderNum + '.svg'"
               />
               <v-divider></v-divider>
               <p>Quantity: {{ item.quantity }}pcs</p>
@@ -100,7 +98,7 @@
               <p v-if="item.request">Custom Request: {{ item.request }}</p>
               <form
                 method="get"
-                :action="$baseUrl + '/files/gerbers/' + item.orderNum + '.zip'"
+                :action="$baseUrl + '/orders/gerbers/' + item.orderNum + '.zip'"
               >
                 <v-btn color="primary" type="submit">Download Files</v-btn>
               </form>
@@ -159,11 +157,7 @@ export default {
           this.board_arr.push(JSON.parse(boards[i]));
         }
         this.loaded = true;
-
-        // if (orderData[14] == 'Placed"') this.stage = 1;
-        // else if (orderData[14] == 'Manufacturing"') this.stage = 2;
-        // else if (orderData[14] == 'Shipped"') this.stage = 3;
-        // else if (orderData[14] == 'Delivered"') this.stage = 4;
+        console.log(this.board_arr);
       } catch (e) {
         console.error(e);
         this.loading = false;
@@ -196,5 +190,9 @@ p {
 }
 .board {
   padding: 10px;
+}
+img {
+  width: auto;
+  height: auto;
 }
 </style>

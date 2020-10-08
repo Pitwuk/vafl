@@ -28,7 +28,7 @@
                 class="home-card"
               >
                 <v-img
-                  src="../assets/fast.png"
+                  src="../assets/timer.svg"
                   class="home-card-image"
                   contain
                 />
@@ -47,7 +47,7 @@
                 class="home-card"
               >
                 <v-img
-                  src="../assets/microscope.png"
+                  src="../assets/microscope.svg"
                   class="home-card-image"
                   contain
                 />
@@ -69,7 +69,7 @@
                 class="home-card"
               >
                 <v-img
-                  src="../assets/michigan.png"
+                  src="../assets/michigan.svg"
                   class="home-card-image"
                   contain
                 />
@@ -90,7 +90,7 @@
       <v-container>
         <v-row>
           <v-col cols="12" md="4">
-            <img src="../assets/letter.png" class="shipping_image" />
+            <img src="../assets/letter.svg" class="shipping_image" />
           </v-col>
           <v-col cols="12" md="8">
             <h1 class="shipping">Free shipping on orders over $10</h1>
@@ -102,12 +102,12 @@
     <v-container>
       <v-row>
         <v-col cols="12" md="4">
-          <a href="/capabilities"
+          <a href="/design-rules"
             ><h2 class="start_subheader">Design Rules</h2></a
           >
         </v-col>
         <v-col cols="12" md="4">
-          <a href="/capabilities"
+          <a href="/export"
             ><h2 class="start_subheader">Exporting Gerbers</h2></a
           >
         </v-col>

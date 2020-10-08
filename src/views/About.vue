@@ -1,7 +1,7 @@
 <template>
   <div class="secondary">
     <Appbar />
-    <div>
+    <div class="secondary fill-height">
       <v-container class="container">
         <div>
           <h1>About Us</h1>
@@ -45,6 +45,5 @@ p {
   width: 100%;
   padding: 30px;
   margin-top: 30px;
-  margin-bottom: 300px;
 }
 </style>

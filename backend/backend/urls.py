@@ -7,6 +7,8 @@ from orders import views
 urlpatterns = [
     path('api/admin/', views.admin),
     path('api/orders/', views.order_data),
-    path('api/files/', views.files),
-    path('api/charge/', views.create_charge)
+    path('api/api/files/', views.files),
+    path('api/charge/', views.create_charge),
+    path('api/upload_image/', views.store_image),
+    path('api/download/', views.download)
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

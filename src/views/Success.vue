@@ -17,7 +17,7 @@
             <h2 align="center">Order Summary:</h2>
             <v-divider></v-divider>
             <v-list>
-              <v-list-item v-for="item in $cart.slice(1)" :key="item">
+              <v-list-item v-for="(item, i) in $cart.slice(1)" :key="i">
                 <v-list-item-title v-text="item.name"></v-list-item-title>
                 <v-list-item-title
                   v-text="'x ' + item.quantity"
@@ -32,7 +32,7 @@
                   "
                 ></v-list-item-title>
               </v-list-item>
-              <v-list-item v-for="item in $cart.slice(1)" :key="item">
+              <v-list-item v-for="(item, i) in $cart.slice(1)" :key="i">
                 <v-list-item-title>Shipping:</v-list-item-title>
                 <v-list-item-title></v-list-item-title>
                 <v-list-item-title
@@ -50,16 +50,11 @@
             </v-list>
           </v-card>
         </v-col>
-
         <v-col cols="12" md="6">
-          <v-card v-for="item in $cart.slice(1)" :key="item" class="board">
+          <v-card v-for="(item, i) in $cart.slice(1)" :key="i" class="board">
             <h2 align="center">{{ item.name }}:</h2>
             <v-divider></v-divider>
-            <v-img
-              contain
-              :src="$baseUrl + '/files/images/' + item.orderNum + '.png'"
-              max-height="200"
-            />
+            <img :src="$baseUrl + '/orders/images/' + item.orderNum + '.svg'" />
             <v-divider></v-divider>
             <p>Quantity: {{ item.quantity }}pcs</p>
             <p>
@@ -115,5 +110,9 @@ h2 {
 }
 #total {
   padding-left: 20px;
+}
+img {
+  width: auto;
+  height: auto;
 }
 </style>
