@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['toasterwaffles.ddns.net', '192.168.1.7', '127.0.0.1']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -128,3 +127,5 @@ MEDIA_ROOT = 'orders/'
 STATIC_URL = '/static/'
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 33554432

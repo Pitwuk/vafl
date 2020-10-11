@@ -42,7 +42,9 @@
                 v-if="loading"
               ></v-progress-linear>
               <v-card-text class="red--text" v-if="failed"
-                >Invalid File</v-card-text
+                >Invalid File. Please ensure your files are formatted correctly
+                by reading our
+                <a href="/export">Eporting Guide.</a></v-card-text
               ><span id="top_img"><br /></span><span id="bottom_img"></span>
               <v-divider></v-divider>
               <v-card-text>
@@ -101,7 +103,9 @@
                     <span v-if="speed == 'Economy'"
                       >Ships in &#60; 10 days</span
                     >
-                    <span v-if="speed == 'Fast'">Ships in &#60; 24 hours</span>
+                    <span v-if="speed == 'Fast'"
+                      >Ships in &#60; {{ fast_time }}</span
+                    >
                     <span v-if="speed == 'Turbo'">Ships in &#60; 3 hours</span>
                   </v-tooltip>
                 </v-chip-group>
@@ -124,7 +128,7 @@
                   >
                     <template v-slot:activator="{ on, attrs }">
                       <v-chip
-                        :disabled="color == 'White' || color == 'Blue'"
+                        :disabled="disabled_colors.includes(color)"
                         v-bind="attrs"
                         v-on="on"
                         :value="color"
@@ -155,7 +159,7 @@
                   >
                     <template v-slot:activator="{ on, attrs }">
                       <v-chip
-                        :disabled="silk == 'White' || silk == 'Black'"
+                        :disabled="disabled_silk.includes(silk)"
                         v-bind="attrs"
                         v-on="on"
                         :value="silk"
@@ -213,7 +217,9 @@
                 <span
                   class="title"
                   v-text="
-                    ' ' + Math.round((1 - salePrice / price) * 100) + '% off'
+                    ' ' +
+                    Math.round((1 - parseFloat(salePrice) / price) * 100) +
+                    '% off'
                   "
                   v-if="salePrice"
                 ></span>
@@ -273,9 +279,9 @@ import Appbar from "../components/Appbar.vue";
 import Bottom from "../components/Bottom.vue";
 import { SVG } from "@svgdotjs/svg.js";
 // import { Board } from "../plugins/Gerber.js";
+const axios = require("axios");
 
 var pricePerCm = 0.1;
-var sale = 1; //(.9 = 10% off)
 
 export default {
   data: () => ({
@@ -285,6 +291,7 @@ export default {
     failed: false,
     price: 0,
     salePrice: 0,
+    sale: 1,
     imageUrl: "",
     gerber: "",
     order: {
@@ -324,7 +331,10 @@ export default {
     layerOpt: ["1", "2"],
     speeds: ["Economy", "Fast"],
     colors: ["White", "Blue", "Red", "Any"],
+    disabled_colors: [],
     silkOpt: ["White", "Black", "None"],
+    disabled_silk: [],
+    fast_time: "",
   }),
   methods: {
     updatePrice() {
@@ -358,8 +368,8 @@ export default {
         if (this.order.speed == "Economy") this.price += 2;
         else if (this.order.speed == "Fast") this.price += 4;
       }
-      if (sale != 1) {
-        this.salePrice = this.price * sale;
+      if (this.sale != 1) {
+        this.salePrice = this.price * this.sale;
         this.order.price = this.salePrice;
       } else this.order.price = this.price;
     },
@@ -389,7 +399,6 @@ export default {
         formData.append("gerber", f);
 
         //http file post
-        const axios = require("axios");
 
         var response = await axios.post(
           this.$baseUrl + "/api/api/files/",
@@ -425,7 +434,6 @@ export default {
             },
           }
         );
-        console.log(response);
       } catch (e) {
         console.error(e);
         this.loading = false;
@@ -1066,6 +1074,65 @@ export default {
         }
       }
     },
+  },
+  async beforeMount() {
+    const formData = { password: process.env.VUE_APP_ORDER_PASS };
+
+    const response = await axios.get(
+      this.$baseUrl + "/api/sitevars/",
+      formData
+    );
+    const sitevars = response.data
+      .substring(1, response.data.length - 1)
+      .split(', "');
+    this.sale_end = sitevars[2].substring(
+      sitevars[2].indexOf(": ") + 3,
+      sitevars[2].length - 1
+    );
+    this.currtime = new Date();
+    this.total = Date.parse(this.sale_end) - Date.parse(this.currtime);
+    if (this.total > 0) {
+      this.sale = 0.5;
+    }
+    this.colors = sitevars[3]
+      .substring(sitevars[3].indexOf(": ") + 3, sitevars[3].length - 1)
+      .split(",");
+    for (let i = 0; i < this.colors.length; i++) {
+      if (this.colors[i][this.colors[i].length - 1] == "-") {
+        this.colors[i] = this.colors[i].substring(0, [
+          this.colors[i].length - 1,
+        ]);
+        this.disabled_colors.push(this.colors[i]);
+      }
+    }
+    this.colors.push("Any");
+
+    this.silkOpt = sitevars[4]
+      .substring(sitevars[4].indexOf(": ") + 3, sitevars[4].length - 1)
+      .split(",");
+    console.log(this.silkOpt);
+    for (let i = 0; i < this.silkOpt.length; i++) {
+      if (this.silkOpt[i][this.silkOpt[i].length - 1] == "-") {
+        this.silkOpt[i] = this.silkOpt[i].substring(0, [
+          this.silkOpt[i].length - 1,
+        ]);
+        this.disabled_silk.push(this.silkOpt[i]);
+      }
+    }
+    this.silkOpt.push("None");
+
+    this.fast_time = sitevars[5].substring(
+      sitevars[5].indexOf(": ") + 3,
+      sitevars[5].length - 1
+    );
+    pricePerCm = sitevars[6].substring(
+      sitevars[6].indexOf(": ") + 3,
+      sitevars[6].length - 1
+    );
+    this.promo_codes = sitevars[7].substring(
+      sitevars[7].indexOf(": ") + 3,
+      sitevars[7].length - 1
+    );
   },
   components: { Appbar, Bottom },
 };

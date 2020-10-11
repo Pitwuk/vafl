@@ -13,3 +13,12 @@ class Order(models.Model):
     zipCode = models.CharField(max_length=5)
     boards = models.CharField(max_length=65536, default ='')
     shipping = models.CharField(max_length=32, default = "")
+
+class SiteVars(models.Model):
+    site_pass = models.CharField(max_length=8) #password/id for changing vars
+    first_time_user_sale = models.CharField(max_length=8) #Date of end of first time user sale MM/DD/YY
+    colors = models.CharField(max_length=64, default='Red,White,Blue') #'color1,color2-,color3'  color2 disabled
+    silk_colors = models.CharField(max_length=32, default='White,Black')
+    fast_time = models.CharField(max_length=16, default='24 hours')
+    price_per_sqcm = models.CharField(max_length=5, default='0.1')
+    promo_codes = models.CharField(max_length=256)#'code,.9;code2,.8' code1 10% off, code2 20% off

@@ -147,9 +147,78 @@
       </v-data-table>
       <v-btn @click="advanceStage(d_selected[0], 'In Transit')">Back</v-btn>
       <v-btn @click="advanceStage(d_selected[0], 'DELETE')">Delete Order</v-btn>
+      <v-btn @click="advanceStage('CLEAR', 'CLEAR')">Clear Database</v-btn>
+      <input type="hidden" name="csrftoken" value="{%csrf_token%}" />
+      <v-form>
+        <v-container>
+          <v-row>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="first_time_sale"
+                :rules="sitevarRules"
+                :counter="8"
+                label="First Time User Sale"
+                required
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="colors"
+                :rules="sitevarRules"
+                :counter="64"
+                label="Soldermask Colors"
+                required
+              ></v-text-field>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" md="8">
+              <v-text-field
+                v-model="silk_colors"
+                :rules="sitevarRules"
+                label="Silk Colors"
+                :counter="32"
+                required
+              ></v-text-field>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="fast_time"
+                :rules="sitevarRules"
+                label="Fast Time"
+                :counter="16"
+                required
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="price_per_sqcm"
+                :rules="sitevarRules"
+                label="Price/sqcm"
+                :counter="5"
+                required
+              ></v-text-field>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="promo_codes"
+                :rules="sitevarRules"
+                label="Promo Codes"
+                :counter="256"
+                required
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-form>
+      <v-btn @click="updateSiteVars()">Update Site Vars</v-btn>
+      <v-btn @click="initSiteVars()">Initialize Site Vars</v-btn>
     </v-container>
-    <v-btn @click="advanceStage('CLEAR', 'CLEAR')">Clear Database</v-btn>
-    <input type="hidden" name="csrftoken" value="{%csrf_token%}" />
   </v-main>
 </template>
 
@@ -188,8 +257,14 @@ export default {
         },
         { text: "Speed", value: "speed" },
         { text: "OrderNum", value: "orderNum" },
-        { text: "Stage", value: "stage", sortable: false },
         { text: "Shipping", value: "shipping", sortable: false },
+        { text: "Name", value: "name", sortable: false },
+        { text: "E-Mail", value: "email", sortable: false },
+        { text: "Address", value: "address", sortable: false },
+        { text: "City", value: "city", sortable: false },
+        { text: "State", value: "state", sortable: false },
+        { text: "Zip Code", value: "zip", sortable: false },
+        { text: "Stage", value: "stage", sortable: false },
       ],
       t_headers: [
         {
@@ -211,6 +286,13 @@ export default {
         { text: "Stage", value: "stage", sortable: false },
       ],
       orders: [],
+      first_time_sale: "",
+      colors: "",
+      silk_colors: "",
+      fast_time: "",
+      price_per_sqcm: "",
+      promo_codes: "",
+      sitevarRules: [(v) => !!v || "required"],
     };
   },
   methods: {
@@ -226,14 +308,15 @@ export default {
       }
     },
     async getOrders() {
-      const formData = { password: process.env.VUE_APP_ORDER_PASS };
-
-      const response = await axios.post(
+      var res = await axios.get(this.$baseUrl + "/api/get-token/");
+      var response = await axios.post(
         this.$baseUrl + "/api/admin/",
-        formData
+        { password: process.env.VUE_APP_ORDER_PASS },
+        {headers:{'X-CSRFTOKEN': res.data.token}}
       );
       this.orders = [];
       this.responseToDict(response.data);
+      this.getSiteVars();
     },
     responseToDict(data) {
       var order_arr = data.split('{"id"');
@@ -256,13 +339,36 @@ export default {
         var parent = orderData[1].replace(/"/g, "");
         boards.push(parent.substring(parent.indexOf(": ") + 2));
         var shipping = orderData[11].replace(/"/g, "");
-        boards.push(shipping.substring(parent.indexOf(": ") + 2));
+        boards.push(shipping.substring(shipping.indexOf(": ") + 2));
+        var first = orderData[3].replace(/"/g, "");
+        var last = orderData[4].replace(/"/g, "");
+        boards.push(
+          first.substring(first.indexOf(": ") + 2) +
+            " " +
+            last.substring(last.indexOf(": ") + 2)
+        );
+        var email = orderData[5].replace(/"/g, "");
+        boards.push(email.substring(email.indexOf(": ") + 2));
+        var address = orderData[6].replace(/"/g, "");
+        boards.push(address.substring(address.indexOf(": ") + 2));
+        var city = orderData[7].replace(/"/g, "");
+        boards.push(city.substring(city.indexOf(": ") + 2));
+        var state = orderData[8].replace(/"/g, "");
+        boards.push(state.substring(state.indexOf(": ") + 2));
+        var zip = orderData[9].replace(/"/g, "");
+        boards.push(zip.substring(zip.indexOf(": ") + 2));
 
         for (let j = 0; j < boards[1].length; j++) {
           this.orders.push(JSON.parse(boards[1][j]));
           this.orders[this.orders.length - 1]["datetime"] = boards[0];
           this.orders[this.orders.length - 1]["parentOrderNum"] = boards[2];
           this.orders[this.orders.length - 1]["shipping"] = boards[3];
+          this.orders[this.orders.length - 1]["name"] = boards[4];
+          this.orders[this.orders.length - 1]["email"] = boards[5];
+          this.orders[this.orders.length - 1]["address"] = boards[6];
+          this.orders[this.orders.length - 1]["city"] = boards[7];
+          this.orders[this.orders.length - 1]["state"] = boards[8];
+          this.orders[this.orders.length - 1]["zip"] = boards[9];
         }
       }
     },
@@ -303,6 +409,66 @@ export default {
         );
       }
       this.getOrders();
+    },
+    async getSiteVars() {
+      const formData = { password: process.env.VUE_APP_ORDER_PASS };
+
+      const response = await axios.get(
+        this.$baseUrl + "/api/sitevars/",
+        formData
+      );
+      const sitevars = response.data
+        .substring(1, response.data.length - 1)
+        .split(', "');
+      this.first_time_sale = sitevars[2].substring(
+        sitevars[2].indexOf(": ") + 3,
+        sitevars[2].length - 1
+      );
+      this.colors = sitevars[3].substring(
+        sitevars[3].indexOf(": ") + 3,
+        sitevars[3].length - 1
+      );
+      this.silk_colors = sitevars[4].substring(
+        sitevars[4].indexOf(": ") + 3,
+        sitevars[4].length - 1
+      );
+      this.fast_time = sitevars[5].substring(
+        sitevars[5].indexOf(": ") + 3,
+        sitevars[5].length - 1
+      );
+      this.price_per_sqcm = sitevars[6].substring(
+        sitevars[6].indexOf(": ") + 3,
+        sitevars[6].length - 1
+      );
+      this.promo_codes = sitevars[7].substring(
+        sitevars[7].indexOf(": ") + 3,
+        sitevars[7].length - 1
+      );
+    },
+    async updateSiteVars() {
+      const formData = {
+        password: process.env.VUE_APP_ORDER_PASS,
+        first_time_user_sale: this.first_time_sale,
+        colors: this.colors,
+        silk_colors: this.silk_colors,
+        fast_time: this.fast_time,
+        price_per_sqcm: this.price_per_sqcm,
+        promo_codes: this.promo_codes,
+      };
+
+      const response = await axios.post(
+        this.$baseUrl + "/api/sitevars/",
+        formData
+      );
+      this.getSiteVars;
+    },
+    async initSiteVars() {
+      const formData = { password: process.env.VUE_APP_ORDER_PASS };
+
+      const response = await axios.put(
+        this.$baseUrl + "/api/sitevars/",
+        formData
+      );
     },
   },
 };

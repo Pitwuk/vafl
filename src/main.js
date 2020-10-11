@@ -15,6 +15,7 @@ Vue.use(cookie);
 
 //global vars
 Vue.prototype.$baseUrl = "https://www.vaflpcb.com";
+// Vue.prototype.$baseUrl = "http://127.0.0.1:8000";
 Vue.prototype.$cart = [];
 Vue.prototype.$cart_key = 1;
 Vue.prototype.$firstName = "";
@@ -32,12 +33,3 @@ new Vue({
   vuetify,
   render: (h) => h(App),
 }).$mount("#app");
-
-// Vue.http.interceptors.push((request, next) => {
-//   request.headers.set(
-//     "X-XSRF-TOKEN",
-//     cookie.parse(document.cookie)["XSRF-TOKEN"]
-//   );
-//   Vue.prototype.$csrftoken = cookie.parse(document.cookie)["XSRF-TOKEN"];
-//   next();
-// });

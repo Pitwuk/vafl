@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
+from django.middleware.csrf import get_token
 from django.http.multipartparser import MultiPartParser
 from django.http import HttpResponse, JsonResponse
 from django.utils.encoding import smart_str
@@ -17,7 +18,7 @@ from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPM
 import stripe
 from decouple import config
-from .models import Order
+from .models import Order, SiteVars
 import smtplib
 import ssl
 from email.mime.text import MIMEText
@@ -26,6 +27,9 @@ import mysql.connector
 from datetime import datetime
 import copy
 
+def get_csrf_token(request):
+    token = get_token(request)
+    return JsonResponse({'token': token})
 
 @csrf_exempt
 def files(request):
@@ -184,11 +188,57 @@ def store_image(request):
         except:
             return HttpResponse(status=400)
 
-
-
 @csrf_exempt
+def site_vars(request):
+    if request.method == 'GET':
+        try:
+            site_arr = []
+            for p in Order.objects.raw('SELECT * FROM orders_sitevars WHERE site_pass="ggegeege"' ):
+                site = copy.deepcopy(p).__dict__
+                del site['_state']
+            response_object = json.dumps(site)
+
+            return JsonResponse(response_object, safe=False)
+
+        except Exception as e:
+            print(e)
+            print('error making query')
+            return HttpResponse(status=400)
+    else:
+        body = json.loads(request.body)
+        if request.method == 'POST' and body['password'] == config('ORDER_PASS'):
+            try:
+                SiteVars.objects.filter(site_pass="ggegeege").update(first_time_user_sale=body['first_time_user_sale'])
+                SiteVars.objects.filter(site_pass="ggegeege").update(colors=body['colors'])
+                SiteVars.objects.filter(site_pass="ggegeege").update(silk_colors=body['silk_colors'])
+                SiteVars.objects.filter(site_pass="ggegeege").update(fast_time=body['fast_time'])
+                SiteVars.objects.filter(site_pass="ggegeege").update(price_per_sqcm=body['price_per_sqcm'])
+                SiteVars.objects.filter(site_pass="ggegeege").update(promo_codes=body['promo_codes'])
+                return HttpResponse(status=200)
+            except Exception as e:
+                print(e)
+                print('error making query')
+                return HttpResponse(status=400)
+        elif request.method == 'PUT' and body['password'] == config('ORDER_PASS'):
+            try:
+                site=SiteVars()
+                site.site_pass="ggegeege"
+                site.first_time_user_sale = ''
+                site.colors = ''
+                site.silk_colors = ''
+                site.fast_time = ''
+                site.price_per_sqcm = ''
+                site.promo_codes = ''
+                site.save()
+                return HttpResponse(status=200)
+            except Exception as e:
+                print(e)
+                return HttpResponse(status=400)
+
+
 def admin(request):
     request_body = json.loads(request.body)
+    print(request_body)
     if request.method == 'POST' and request_body['password'] == config('ORDER_PASS'):
         try:
             order_arr = []
@@ -199,8 +249,10 @@ def admin(request):
                 order_arr.append(order)
 
             response_object = json.dumps(order_arr)
+            
 
             return JsonResponse(response_object, safe=False)
+            # return HttpResponse(status=200)
 
         except Exception as e:
             print(e)

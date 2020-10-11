@@ -1,17 +1,29 @@
 <template>
   <v-app>
     <Appbar />
-    <v-carousel cycle interval="6000" hide-delimiters class="shadow">
+    <div v-if="sale_bool" class="sale_banner">
+      <h1 class="sale_text">
+        SALE 50% OFF — TIME LEFT:
+        {{ sale_days }}:{{ sale_hours }}:{{ sale_minutes }}:{{ sale_seconds }}
+      </h1>
+    </div>
+    <v-carousel
+      cycle
+      interval="6000"
+      hide-delimiters
+      class="shadow"
+      height="600"
+    >
       <v-carousel-item v-for="(item, i) in items" :key="i" :src="item.src">
-        <p class="display-2">{{ slideText[i] }}</p>
+        <h2 class="carousel_text">{{ slideText[i] }}</h2>
       </v-carousel-item>
       <div class="button">
         <v-btn
           x-large
           raised
           to="/order"
+          class="order_button"
           height="100"
-          width="300"
           color="secondary"
           >Order Now</v-btn
         >
@@ -130,6 +142,8 @@ import Bottom from "../components/Bottom.vue";
 export default {
   data() {
     return {
+      sale_bool: false,
+      sale_days: 0,
       items: [
         {
           src: require("../assets/c_1.jpg"),
@@ -142,11 +156,53 @@ export default {
         },
       ],
       slideText: [
-        "• 24 hour turnaround time\n• Fast shipping",
         "• Made In the USA\n• Professional quality",
-        "• $2 / board (size ≤ 50 x 50mm)\n• Free Shipping on orders over $10",
+        "• 24 hour turnaround time\n• Fast shipping",
+        "• $0.10 / sqcm \n• Free Shipping on orders over $10",
       ],
     };
+  },
+  methods: {
+    formatNum: (num) => (num < 10 ? "0" + num : num),
+    saleCountDown() {
+      if (this.total > 0) {
+        setInterval(() => {
+          this.total = Date.parse(this.sale_end) - Date.parse(new Date());
+          this.sale_seconds = Math.floor((this.total / 1000) % 60);
+          this.sale_minutes = Math.floor((this.total / 1000 / 60) % 60);
+          this.sale_hours = Math.floor((this.total / (1000 * 60 * 60)) % 24);
+          this.sale_days = Math.floor(this.total / (1000 * 60 * 60 * 24));
+          this.sale_bool = false;
+          this.sale_bool = true;
+        }, 1000);
+      } else {
+        this.sale_bool = false;
+      }
+    },
+  },
+  async beforeMount() {
+    try {
+      const axios = require("axios");
+      const formData = { password: process.env.VUE_APP_ORDER_PASS };
+
+      const response = await axios.get(
+        this.$baseUrl + "/api/sitevars/",
+        formData
+      );
+      const sitevars = response.data
+        .substring(1, response.data.length - 1)
+        .split(', "');
+
+      this.sale_end = sitevars[2].substring(
+        sitevars[2].indexOf(": ") + 3,
+        sitevars[2].length - 1
+      );
+      this.currtime = new Date();
+      this.total = Date.parse(this.sale_end) - Date.parse(this.currtime);
+      this.saleCountDown();
+    } catch {
+      console.log("couldnt get site vars");
+    }
   },
   components: { Appbar, Bottom },
 };
@@ -169,16 +225,24 @@ export default {
 .home-card-image {
   height: 250px;
 }
-.display-2 {
+.carousel_text {
   white-space: pre-wrap;
   position: absolute;
   left: 60px;
   bottom: 30px;
+  margin-right: 20vw;
+  font-size: 300%;
+  /* -webkit-text-stroke: 1.5px black;
+  -webkit-text-fill-color: white; */
+  text-shadow: 4px 4px 2px black;
 }
 .button {
   position: absolute;
   right: 2%;
   bottom: 2%;
+}
+.order_button {
+  width: 20vw;
 }
 .quaternary {
   width: 100%;
@@ -213,5 +277,17 @@ a {
   padding: 10px;
   width: 50%;
   max-height: 250px;
+}
+.sale_banner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #d83131;
+  height: 50px;
+}
+.sale_text {
+  color: white;
+  /* font-size: 2.4vw; */
+  font-size: 200%;
 }
 </style>
