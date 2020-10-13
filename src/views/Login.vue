@@ -308,12 +308,14 @@ export default {
       }
     },
     async getOrders() {
-      var res = await axios.get(this.$baseUrl + "/api/get-token/");
-      var response = await axios.post(
-        this.$baseUrl + "/api/admin/",
-        { password: process.env.VUE_APP_ORDER_PASS },
-        {headers:{'X-CSRFTOKEN': res.data.token}}
-      );
+      if (!axios.defaults.headers.common["X-CSRFTOKEN"]) {
+        var res = await axios.get(this.$baseUrl + "/api/get-token/");
+        axios.defaults.headers.common["X-CSRFTOKEN"] = res.data.token;
+      }
+
+      var response = await axios.post(this.$baseUrl + "/api/admin/", {
+        password: process.env.VUE_APP_ORDER_PASS,
+      });
       this.orders = [];
       this.responseToDict(response.data);
       this.getSiteVars();

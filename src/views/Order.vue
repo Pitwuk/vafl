@@ -1076,6 +1076,11 @@ export default {
     },
   },
   async beforeMount() {
+    if (!axios.defaults.headers.common["X-CSRFTOKEN"]) {
+      var res = await axios.get(this.$baseUrl + "/api/get-token/");
+      axios.defaults.headers.common["X-CSRFTOKEN"] = res.data.token;
+    }
+
     const formData = { password: process.env.VUE_APP_ORDER_PASS };
 
     const response = await axios.get(

@@ -130,6 +130,10 @@ export default {
     async checkStatus() {
       this.failed = false;
       try {
+        if (!axios.defaults.headers.common["X-CSRFTOKEN"]) {
+          var res = await axios.get(this.$baseUrl + "/api/get-token/");
+          axios.defaults.headers.common["X-CSRFTOKEN"] = res.data.token;
+        }
         //form data
         const formData = {
           orderNum: this.orderNum,

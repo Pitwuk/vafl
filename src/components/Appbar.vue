@@ -4,10 +4,11 @@
       src="../assets/whiteLogo.png"
       contain
       max-height="50"
+      max-width="100"
       @click="home()"
       id="bar"
     />
-    <v-toolbar-items>
+    <v-toolbar-items class="toolbar_end">
       <v-menu rounded="b-xl" offset-y :close-on-content-click="false">
         <template v-slot:activator="{ attrs, on }">
           <v-btn v-bind="attrs" v-on="on" icon>
@@ -73,12 +74,15 @@ export default {
 <style scoped>
 #bar {
   cursor: pointer;
-  margin-top: auto;
-  margin-bottom: auto;
+  margin: auto;
   padding-top: 10px;
   padding-bottom: 10px;
 }
 .checkout_button {
+  position: absolute;
+  right: 10px;
+}
+.toolbar_end {
   position: absolute;
   right: 10px;
 }

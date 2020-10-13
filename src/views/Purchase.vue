@@ -317,7 +317,7 @@
 
 <script>
 import { mask } from "vue-the-mask";
-
+const axios = require("axios");
 export default {
   data: () => ({
     e1: 1,
@@ -609,8 +609,6 @@ export default {
             // eslint-disable-next-line
             console.error(response);
           } else {
-            const axios = require("axios");
-
             const payload = {
               token: response.id,
               orderNum: this.$cart[0],
@@ -644,7 +642,6 @@ export default {
                 console.log(this.$shippingMethod);
 
                 //http file post
-                const axios = require("axios");
 
                 axios
                   .post(this.$baseUrl + "/api/orders/", formData)
@@ -663,7 +660,15 @@ export default {
       }
     },
   },
-  beforeMount() {
+  async beforeMount() {
+    try {
+      if (!axios.defaults.headers.common["X-CSRFTOKEN"]) {
+        var res = await axios.get(this.$baseUrl + "/api/get-token/");
+        axios.defaults.headers.common["X-CSRFTOKEN"] = res.data.token;
+      }
+    } catch {
+      console.log("error creating session");
+    }
     this.productPrice = 0;
     for (let i = 1; i < this.$cart.length; i++) {
       this.productPrice += this.$cart[i].price;

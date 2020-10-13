@@ -138,6 +138,7 @@
 <script>
 import Appbar from "../components/Appbar.vue";
 import Bottom from "../components/Bottom.vue";
+const axios = require("axios");
 
 export default {
   data() {
@@ -182,7 +183,6 @@ export default {
   },
   async beforeMount() {
     try {
-      const axios = require("axios");
       const formData = { password: process.env.VUE_APP_ORDER_PASS };
 
       const response = await axios.get(
@@ -231,7 +231,7 @@ export default {
   left: 60px;
   bottom: 30px;
   margin-right: 20vw;
-  font-size: 300%;
+  font-size: 4vw;
   /* -webkit-text-stroke: 1.5px black;
   -webkit-text-fill-color: white; */
   text-shadow: 4px 4px 2px black;
@@ -283,7 +283,7 @@ a {
   justify-content: center;
   align-items: center;
   background-color: #d83131;
-  height: 50px;
+  /* height: 50px; */
 }
 .sale_text {
   color: white;
