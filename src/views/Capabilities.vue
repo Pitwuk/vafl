@@ -1,8 +1,8 @@
 <template>
-  <body class="secondary">
+  <body class="quaternary">
     <Appbar />
     <div>
-      <v-container fluid>
+      <v-container class="fill-height quaternary" fluid>
         <table class="table shadow">
           <thead class="font16">
             <tr>

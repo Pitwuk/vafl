@@ -1,57 +1,56 @@
 <template>
-  <body class="secondary">
+  <body class="quaternary">
     <Appbar />
-    <div>
-      <v-container fluid>
-        <div class="main_box shadow">
-          <h1>How To Update Your Design Rules</h1>
-          <v-divider></v-divider>
-          <p>
-            This guide should help you to set up your design rules to our
-            specifications.
-          </p>
+    <v-container class="fill-height quaternary" fluid>
+      <div class="main_box shadow">
+        <h1>How To Update Your Design Rules</h1>
+        <v-divider></v-divider>
+        <p>
+          This guide should help you to set up your design rules to our
+          specifications.
+        </p>
 
-          <h2>Global Rules:</h2>
+        <h2>Global Rules:</h2>
 
-          <ul>
-            <li>Minimum Track Width: 0.127mm | 5mil</li>
-            <li>Minimum Via Diameter: 0.5mm | 20mil</li>
-            <li>Minimum Via Drill: 0.3mm | 11.811mil</li>
-            <li>Minimum Hole to Hole to 0.25mm | 10mil</li>
-          </ul>
-          <p>
-            The full list of capabilities can be found
-            <a href="/capabilities">here.</a>
-          </p>
+        <ul>
+          <li>Minimum Track Width: 0.127mm | 5mil</li>
+          <li>Minimum Via Diameter: 0.5mm | 20mil</li>
+          <li>Minimum Via Drill: 0.3mm | 11.811mil</li>
+          <li>Minimum Hole to Hole to 0.25mm | 10mil</li>
+        </ul>
+        <p>
+          The full list of capabilities can be found
+          <a href="/capabilities">here.</a>
+        </p>
 
-          <v-expansion-panels class="exp_pan">
-            <v-expansion-panel
-              v-for="(item, i) in instructions"
-              :key="i"
-              class="grey lighten-4"
+        <v-expansion-panels class="exp_pan">
+          <v-expansion-panel
+            v-for="(item, i) in instructions"
+            :key="i"
+            class="grey lighten-4"
+          >
+            <v-expansion-panel-header class="names">{{
+              item.name
+            }}</v-expansion-panel-header>
+            <v-expansion-panel-content
+              ><v-list>
+                <template v-for="(step, i) in item.steps">
+                  <v-list-item-title v-bind:key="i">
+                    <h3>
+                      {{ step.title }}
+                    </h3></v-list-item-title
+                  ><v-list-item v-bind:key="i"
+                    ><p>
+                      {{ step.details }}
+                    </p></v-list-item
+                  ></template
+                >
+              </v-list></v-expansion-panel-content
             >
-              <v-expansion-panel-header class="names">{{
-                item.name
-              }}</v-expansion-panel-header>
-              <v-expansion-panel-content
-                ><v-list>
-                  <template v-for="(step, i) in item.steps">
-                    <v-list-item-title v-bind:key="i">
-                      <h3>
-                        {{ step.title }}
-                      </h3></v-list-item-title
-                    ><v-list-item v-bind:key="i"
-                      ><p>
-                        {{ step.details }}
-                      </p></v-list-item
-                    ></template
-                  >
-                </v-list></v-expansion-panel-content
-              >
-            </v-expansion-panel>
-          </v-expansion-panels>
-        </div>
-      </v-container>
+          </v-expansion-panel>
+        </v-expansion-panels>
+      </div>
+
       <v-container class="shadow support">
         <div>
           <h1>Further Inqueries?</h1>
@@ -65,13 +64,14 @@
             If this guide does not include your design software you can let us
             know at
             <a
-              href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=vaflpcb@gmail.com"
-              >vaflpcb@gmail.com</a
+              href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=support@vaflpcb.com"
+              >support@vaflpcb.com</a
             >, and we will update this page to include it soon.
           </p>
         </div>
       </v-container>
-    </div>
+    </v-container>
+
     <Bottom />
   </body>
 </template>

@@ -18,13 +18,15 @@ Vue.prototype.$baseUrl = "https://www.vaflpcb.com";
 // Vue.prototype.$baseUrl = "http://127.0.0.1:8000";
 Vue.prototype.$cart = [];
 Vue.prototype.$cart_key = 1;
-Vue.prototype.$firstName = "";
+Vue.prototype.$firstName = [];
 Vue.prototype.$lastName = "";
 Vue.prototype.$email = "";
 Vue.prototype.$address = "";
 Vue.prototype.$city = "";
 Vue.prototype.$state = "";
+Vue.prototype.$country = "";
 Vue.prototype.$zip = 0;
+Vue.prototype.$login = [];
 Vue.prototype.$shippingPrice = 0;
 Vue.prototype.$shippingMethod = "";
 

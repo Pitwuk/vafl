@@ -1,48 +1,47 @@
 <template>
-  <body class="secondary">
+  <body class="quaternary">
     <Appbar />
-    <div>
-      <v-container fluid>
-        <div class="main_box shadow">
-          <h1>How To Export Your Gerber Files</h1>
-          <v-divider></v-divider>
-          <p>
-            This guide should help if you are having trouble uploading your
-            gerber files.
-          </p>
+    <v-container class="fill-height quaternary" fluid>
+      <div class="main_box shadow">
+        <h1>How To Export Your Gerber Files</h1>
+        <v-divider></v-divider>
+        <p>
+          This guide should help if you are having trouble uploading your gerber
+          files.
+        </p>
 
-          <h2>Format Rules:</h2>
-          <br />
-          <p>
-            We only accept files in the RS-274X format with Protel filename
-            extensions.
-          </p>
+        <h2>Format Rules:</h2>
+        <br />
+        <p>
+          We only accept files in the RS-274X format with Protel filename
+          extensions.
+        </p>
 
-          <v-expansion-panels class="exp_pan">
-            <v-expansion-panel
-              v-for="(item, i) in instructions"
-              :key="i"
-              class="grey lighten-4"
-            >
-              <v-expansion-panel-header class="names">{{
-                item.name
-              }}</v-expansion-panel-header>
-              <v-expansion-panel-content
-                ><v-img :src="item.img" />
-                <p>
-                  To export your gerber files in KiCad click on Plot and then
-                  fill out the boxes as shown in the image.<br />
-                  Make sure to enable 'Use Protel filename extensions', 'Use
-                  extended X2 format', and 'Subtract soldermask from silkscreen'
-                  before plotting your gerber files. Then click Generate Drill
-                  files and export them in Excellon to the same folder as your
-                  gerber files. Do not combione the PTH and NPTH files.
-                </p>
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-          </v-expansion-panels>
-        </div>
-      </v-container>
+        <v-expansion-panels class="exp_pan">
+          <v-expansion-panel
+            v-for="(item, i) in instructions"
+            :key="i"
+            class="grey lighten-4"
+          >
+            <v-expansion-panel-header class="names">{{
+              item.name
+            }}</v-expansion-panel-header>
+            <v-expansion-panel-content
+              ><v-img :src="item.img" />
+              <p>
+                To export your gerber files in KiCad click on Plot and then fill
+                out the boxes as shown in the image.<br />
+                Make sure to enable 'Use Protel filename extensions', 'Use
+                extended X2 format', and 'Subtract soldermask from silkscreen'
+                before plotting your gerber files. Then click Generate Drill
+                files and export them in Excellon to the same folder as your
+                gerber files. Do not combione the PTH and NPTH files.
+              </p>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+        </v-expansion-panels>
+      </div>
+
       <v-container class="shadow support">
         <div>
           <h1>Further Inqueries?</h1>
@@ -56,13 +55,13 @@
             If this guide does not include your design software you can let us
             know at
             <a
-              href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=vaflpcb@gmail.com"
-              >vaflpcb@gmail.com</a
+              href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=support@vaflpcb.com"
+              >support@vaflpcb.com</a
             >, and we will update this page to include it soon.
           </p>
         </div>
       </v-container>
-    </div>
+    </v-container>
     <Bottom />
   </body>
 </template>

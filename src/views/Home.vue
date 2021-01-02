@@ -1,9 +1,9 @@
 <template>
-  <v-app>
+  <v-app class="quaternary">
     <Appbar />
     <div v-if="sale_bool" class="sale_banner">
       <h1 class="sale_text">
-        SALE 50% OFF — TIME LEFT:
+        SALE 50% OFF FIRST ORDER— TIME LEFT:
         {{ sale_days }}:{{ sale_hours }}:{{ sale_minutes }}:{{ sale_seconds }}
       </h1>
     </div>
@@ -12,7 +12,7 @@
       interval="6000"
       hide-delimiters
       class="shadow"
-      height="600"
+      height="45vh"
     >
       <v-carousel-item v-for="(item, i) in items" :key="i" :src="item.src">
         <h2 class="carousel_text">{{ slideText[i] }}</h2>
@@ -21,10 +21,11 @@
         <v-btn
           x-large
           raised
-          to="/order"
-          class="order_button"
+          @click="orderRedirect()"
+          width="200"
           height="100"
-          color="secondary"
+          color="primary"
+          class="order_button"
           >Order Now</v-btn
         >
       </div>
@@ -111,7 +112,7 @@
       </v-container>
     </div>
     <h1 class="start_header">Getting Started</h1>
-    <v-container>
+    <v-container class="quaternary">
       <v-row>
         <v-col cols="12" md="4">
           <a href="/design-rules"
@@ -145,6 +146,8 @@ export default {
     return {
       sale_bool: false,
       sale_days: 0,
+      fast_time: "",
+      pricePerCm: "",
       items: [
         {
           src: require("../assets/c_1.jpg"),
@@ -156,11 +159,7 @@ export default {
           src: require("../assets/c_3.jpg"),
         },
       ],
-      slideText: [
-        "• Made In the USA\n• Professional quality",
-        "• 24 hour turnaround time\n• Fast shipping",
-        "• $0.10 / sqcm \n• Free Shipping on orders over $10",
-      ],
+      slideText: ["• Made In the USA\n• $2 boards under 50x50mm"],
     };
   },
   methods: {
@@ -180,6 +179,9 @@ export default {
         this.sale_bool = false;
       }
     },
+    orderRedirect() {
+      this.$router.push("/order");
+    },
   },
   async beforeMount() {
     try {
@@ -192,6 +194,21 @@ export default {
       const sitevars = response.data
         .substring(1, response.data.length - 1)
         .split(', "');
+
+      this.fast_time = sitevars[5].substring(
+        sitevars[5].indexOf(": ") + 3,
+        sitevars[5].length - 1
+      );
+      this.pricePerCm = sitevars[6].substring(
+        sitevars[6].indexOf(": ") + 3,
+        sitevars[6].length - 1
+      );
+      this.slideText.push(
+        "• " + this.fast_time + " turnaround time\n• Fast shipping"
+      );
+      this.slideText.push(
+        "• $" + this.pricePerCm + " / sqcm \n• Free Shipping on orders over $10"
+      );
 
       this.sale_end = sitevars[2].substring(
         sitevars[2].indexOf(": ") + 3,
@@ -230,7 +247,7 @@ export default {
   position: absolute;
   left: 60px;
   bottom: 30px;
-  margin-right: 20vw;
+  margin-right: 210px;
   font-size: 4vw;
   /* -webkit-text-stroke: 1.5px black;
   -webkit-text-fill-color: white; */
@@ -240,9 +257,10 @@ export default {
   position: absolute;
   right: 2%;
   bottom: 2%;
+  box-shadow: 2px 2px 2px white;
 }
 .order_button {
-  width: 20vw;
+  font-size: 25px;
 }
 .quaternary {
   width: 100%;
@@ -257,7 +275,6 @@ export default {
   display: list-item;
   list-style-type: disc;
   list-style-position: inside;
-  color: #b57f50;
   padding-bottom: 30px;
 }
 a {
@@ -268,8 +285,11 @@ a {
 }
 .shipping {
   padding: 10px;
+  padding-top: 9%;
+  display: inline-block;
   vertical-align: middle;
-  line-height: 500%;
+  line-height: normal;
+  /* line-height: 500%; */
 }
 .shipping_image {
   display: inline-block;

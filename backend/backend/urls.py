@@ -11,5 +11,6 @@ urlpatterns = [
     path('api/charge/', views.create_charge),
     path('api/upload_image/', views.store_image),
     path('api/sitevars/', views.site_vars),
+    path('api/account/', views.account),
     path('api/get-token/', views.get_csrf_token)
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

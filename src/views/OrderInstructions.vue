@@ -1,8 +1,8 @@
 <template>
-  <body class="secondary">
+  <body class="quaternary">
     <Appbar />
     <div>
-      <v-container fluid>
+      <v-container class="fill-height quaternary" fluid>
         <div class="main_box shadow">
           <h1>How To Order</h1>
           <v-divider></v-divider>

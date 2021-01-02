@@ -5,7 +5,7 @@
         <h4 class="footer-header">Services</h4>
       </li>
       <li>
-        <a href="/order" class="footer-item">PCB Prototyping</a>
+        <a @click="orderRedirect()" class="footer-item">PCB Prototyping</a>
       </li>
       <!-- <li>
         <a href="/store" class="footer-item">Store</a>
@@ -40,7 +40,9 @@
 </template>
 
 <script>
-export default {};
+export default {methods:{orderRedirect(){
+      this.$router.push("/order");
+    },}};
 </script>
 
 <style scoped>

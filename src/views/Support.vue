@@ -1,40 +1,41 @@
 <template>
-  <body class="secondary">
+  <body class="quaternary">
     <Appbar />
-    <br />
-    <div class="main_box shadow">
-      <h1>Frequently Asked Questions</h1>
-      <v-divider></v-divider>
-      <v-expansion-panels class="faq">
-        <v-expansion-panel
-          v-for="(item, i) in questions"
-          :key="i"
-          class="grey lighten-4"
-        >
-          <v-expansion-panel-header class="question">{{
-            item.question
-          }}</v-expansion-panel-header>
-          <v-expansion-panel-content
-            >{{ item.answer
-            }}<a v-if="item.link" :href="item.link"
-              >here.</a
-            ></v-expansion-panel-content
-          >
-        </v-expansion-panel>
-      </v-expansion-panels>
-    </div>
-    <v-container class="shadow further">
-      <div>
-        <h1>Further Inqueries?</h1>
+    <v-container class="fill-height quaternary" fluid>
+      <div class="main_box shadow">
+        <h1>Frequently Asked Questions</h1>
         <v-divider></v-divider>
-        <p>
-          Please contact our customer support at
-          <a
-            href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=vaflpcb@gmail.com"
-            >vaflpcb@gmail.com</a
-          >.
-        </p>
+        <v-expansion-panels class="faq">
+          <v-expansion-panel
+            v-for="(item, i) in questions"
+            :key="i"
+            class="grey lighten-4"
+          >
+            <v-expansion-panel-header class="question">{{
+              item.question
+            }}</v-expansion-panel-header>
+            <v-expansion-panel-content
+              >{{ item.answer
+              }}<a v-if="item.link" :href="item.link"
+                >here.</a
+              ></v-expansion-panel-content
+            >
+          </v-expansion-panel>
+        </v-expansion-panels>
       </div>
+      <v-container class="shadow further">
+        <div>
+          <h1>Further Inqueries?</h1>
+          <v-divider></v-divider>
+          <p>
+            Please contact our customer support at
+            <a
+              href="https://mail.google.com/mail/u/0/?view=cm&fs=1&to=support@vaflpcb.com"
+              >support@vaflpcb.com</a
+            >.
+          </p>
+        </div>
+      </v-container>
     </v-container>
     <Bottom />
   </body>
@@ -48,13 +49,14 @@ export default {
   data: () => ({
     questions: [
       {
-        question: "How do I create an account?",
-        answer: "Account creation is not currently available.",
+        question: "Where do I enter the promo code?",
+        answer:
+          "Enter the promo code on the billing page and apply it before entering your billing details.",
       },
       {
         question: "When will you be adding silkcreen overlay?",
         answer:
-          "We plan to start shipping boards with overlay by the end of October.",
+          "We plan to start shipping boards with overlay by the end of January.",
       },
       {
         question: "Do you have a certain color of soldermask?",
@@ -105,6 +107,11 @@ export default {
           "Instructions on updating your design software's design rules can be found ",
         link: "/design-rules",
       },
+      {
+        question: "How do I get 50% off?",
+        answer:
+          "If there is a 50% off first order sale going on you must create an account first.",
+      },
     ],
   }),
   components: { Appbar, Bottom },
@@ -126,7 +133,7 @@ p {
 }
 .main_box {
   width: 100%;
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; */
   background-color: white;
 }
 .faq {
@@ -134,8 +141,8 @@ p {
 }
 .further {
   background-color: white;
-  height: 200px;
+  /* height: 200px; */
   padding: 30px;
-  margin-bottom: 30px;
+  /* margin-bottom: 30px; */
 }
 </style>

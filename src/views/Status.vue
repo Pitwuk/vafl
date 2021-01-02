@@ -1,8 +1,8 @@
 <template>
   <body class="quaternary">
     <Appbar />
-    <v-container v-if="!loaded">
-      <v-row align="center" justify="center">
+    <v-container v-if="!loaded" class="fill-height quaternary" fluid>
+      <v-row align="start" justify="center">
         <v-col cols="12" sm="8" md="4">
           <v-card class="elevation-12">
             <v-toolbar color="primary" dark elevation="0">
@@ -19,8 +19,8 @@
                 />
                 <p id="error" v-if="failed">
                   Order does not exist
-                  <br />Please contact us at vaflpcb@gmail.com if you think this
-                  is an error
+                  <br />Please contact us at support@vaflpcb.com if you think
+                  this is an error
                 </p>
               </v-form>
             </v-card-text>
@@ -34,7 +34,7 @@
         </v-col>
       </v-row>
     </v-container>
-    <v-container v-if="loaded">
+    <v-container v-if="loaded" class="fill-height" fluid>
       <v-container>
         <v-row v-for="item in board_arr" :key="item">
           <v-col cols="12" md="6">
@@ -114,6 +114,7 @@
 <script>
 import Appbar from "../components/Appbar.vue";
 import Bottom from "../components/Bottom.vue";
+const axios = require("axios");
 
 export default {
   data: () => ({
@@ -138,9 +139,6 @@ export default {
         const formData = {
           orderNum: this.orderNum,
         };
-
-        //http file post
-        const axios = require("axios");
 
         const response = await axios.put(
           this.$baseUrl + "/api/orders/",

@@ -1,8 +1,8 @@
 <template>
-  <div class="secondary">
+  <body class="quaternary">
     <Appbar />
-    <div class="secondary fill-height">
-      <v-container class="container">
+    <v-container class="fill-height quaternary" fluid>
+      <v-container class="about_container">
         <div>
           <h1>About Us</h1>
           <v-divider></v-divider>
@@ -10,13 +10,13 @@
             We are a PCB manufacting company based in Michigan. All boards are
             manufactured in house. For additional information check out our
             <a href="/support">Frequently Answered Questions</a> or contact us
-            at vaflpcb@gmail.com.
+            at support@vaflpcb.com.
           </p>
         </div>
       </v-container>
-    </div>
+    </v-container>
     <Bottom />
-  </div>
+  </body>
 </template>
 
 
@@ -31,19 +31,16 @@ export default {
 </script>
 
 <style scoped>
-.center {
-  margin: auto;
-}
 h1,
 p {
   padding: 15px;
 }
-.container {
+.about_container {
   box-shadow: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
   background-color: white;
-  height: 200px;
   width: 100%;
   padding: 30px;
+  align-self: start;
   margin-top: 30px;
 }
 </style>

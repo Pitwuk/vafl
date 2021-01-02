@@ -1,5 +1,13 @@
 <template>
   <body class="quaternary">
+    <v-overlay opacity=".9" value="1">
+      <v-card class="ma-4 pa-3">
+        <p class="display-1 closed-text">
+          We are currently closed for the holidays. Orders will reopen January
+          4th.
+        </p>
+      </v-card>
+    </v-overlay>
     <Appbar />
     <v-form v-model="valid">
       <v-container class="container">
@@ -21,7 +29,7 @@
                   block
                   class="white--text"
                   color="primary"
-                  v-if="!width"
+                  v-if="!drawing"
                   @click="onPickFile"
                   >Upload Files</v-btn
                 >
@@ -56,7 +64,7 @@
                       :rules="widthRules"
                       label="Width (mm)"
                       required
-                      readonly
+                      :readonly="!!drawing"
                       @change="updatePrice"
                     ></v-text-field>
                   </v-col>
@@ -67,7 +75,7 @@
                       :rules="heightRules"
                       label="Height (mm)"
                       required
-                      readonly
+                      :readonly="!!drawing"
                       @change="updatePrice"
                     ></v-text-field>
                   </v-col>
@@ -173,6 +181,12 @@
               </v-card-text>
 
               <v-card-text>
+                <span class="subheading">Surface Finish</span>
+                <br />
+                <v-chip color="secondary">{{ finish }}</v-chip>
+              </v-card-text>
+
+              <v-card-text>
                 <span class="subheading">Layers</span>
 
                 <v-chip-group
@@ -188,6 +202,7 @@
                   >
                 </v-chip-group>
               </v-card-text>
+
               <v-card-text>
                 <span class="subheading">Custom Requests</span>
                 <v-text-field
@@ -238,37 +253,129 @@
                   block
                   class="white--text"
                   color="primary"
-                  @click="valid ? (overlay = !overlay) : null"
+                  :disabled="!drawing || !valid || failed"
+                  @click="valid && !failed ? (overlay = true) : null"
                   >Purchase</v-btn
                 >
-                <v-overlay opacity=".5" :value="overlay">
-                  <v-card class="ma-3 pa-3">
-                    <v-btn icon @click="overlay = false">
-                      <v-icon>mdi-close</v-icon>
-                    </v-btn>
-                    <v-card-title>
-                      <h2 class="display-1">Continue Shopping</h2>
-                    </v-card-title>
-
-                    <v-card-text
-                      >Would you like to continue shopping or
-                      checkout?</v-card-text
-                    >
-
-                    <v-divider></v-divider>
-
-                    <v-btn color="primary" @click="storeRedirect()"
-                      >Continue Shopping</v-btn
-                    >
-                    <v-btn color="primary" @click="purchaseRedirect()"
-                      >Checkout Now</v-btn
-                    >
-                  </v-card>
-                </v-overlay>
               </v-card-actions>
+              <span
+                class="body-2"
+                style="padding: 5px"
+                v-if="total > 0 && $login.length < 5"
+                >Sign up for 50% off your order.</span
+              >
             </v-card>
           </v-col>
         </v-row>
+        <v-overlay
+          opacity=".5"
+          :value="overlay && create_account_prompt && total > 0"
+        >
+          <v-card class="ma-3 pa-3">
+            <v-btn icon @click="overlay = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+            <v-card-title>
+              <h2 class="display-1">Create Account</h2>
+            </v-card-title>
+
+            <v-card-text
+              >Would you like to create an account for 50% off your
+              order?</v-card-text
+            >
+
+            <v-divider></v-divider>
+            <v-card-actions class="justify-center pa-2">
+              <v-btn color="primary" @click="accountRedirect()"
+                >Create Account</v-btn
+              >
+              <v-btn color="primary" @click="create_account_prompt = false"
+                >Continue as Guest</v-btn
+              ></v-card-actions
+            >
+          </v-card>
+        </v-overlay>
+        <v-overlay opacity=".5" :value="overlay && !create_account_prompt">
+          <v-card class="ma-3 pa-3">
+            <v-btn icon @click="overlay = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+            <v-card-title>
+              <h2 class="display-1">Continue Shopping</h2>
+            </v-card-title>
+
+            <v-card-text
+              >Would you like to continue shopping or checkout?</v-card-text
+            >
+
+            <v-card-text>Free Shipping on orders over $10</v-card-text>
+
+            <v-divider></v-divider>
+            <v-card-actions class="justify-center pa-2">
+              <v-btn color="primary" @click="storeRedirect()"
+                >Continue Shopping</v-btn
+              >
+              <v-btn color="primary" @click="purchaseRedirect()"
+                >Checkout Now</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-overlay>
+        <v-overlay
+          opacity=".5"
+          :value="
+            drc_overlay &&
+            (drill_diameter_not_tenth_mm ||
+              drill_diameter_too_small ||
+              trace_width_error)
+          "
+        >
+          <v-card class="ma-3 pa-3">
+            <v-btn icon @click="drc_overlay = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+            <v-card-title>
+              <h2 class="display-1">Design Rule Check Error</h2>
+            </v-card-title>
+
+            <v-card-text
+              >The following violations were detected in the drc
+              check:</v-card-text
+            >
+            <ul>
+              <li v-if="drill_diameter_not_tenth_mm">
+                Drill diameter is not an even 0.1mm.
+                <ul>
+                  <li>All holes will be drilled to the nearest 0.1mm.</li>
+                </ul>
+              </li>
+              <li v-if="drill_diameter_too_small">
+                Drill diameter smaller than 0.3mm.
+                <ul>
+                  <li>
+                    Our minimum drill diameter is 0.3mm. Any holes below that
+                    size will be drilled to 0.3mm.
+                  </li>
+                </ul>
+              </li>
+              <li v-if="trace_width_error">
+                Trace width below our minimum.
+                <ul>
+                  <li>
+                    We do not guaranteee success for traces below 0.127mm.
+                  </li>
+                </ul>
+              </li>
+            </ul>
+
+            <v-divider></v-divider>
+            <v-card-actions class="justify-center pa-2">
+              <v-btn color="primary" @click="drc_overlay = false"
+                >Acknowlege</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-overlay>
       </v-container>
     </v-form>
     <Bottom />
@@ -280,6 +387,7 @@ import Bottom from "../components/Bottom.vue";
 import { SVG } from "@svgdotjs/svg.js";
 // import { Board } from "../plugins/Gerber.js";
 const axios = require("axios");
+const fs = require("fs");
 
 var pricePerCm = 0.1;
 
@@ -287,11 +395,15 @@ export default {
   data: () => ({
     valid: false,
     overlay: false,
+    drc_overlay: true,
+    create_account_prompt: false,
     loading: false,
     failed: false,
     price: 0,
     salePrice: 0,
     sale: 1,
+    total: -1,
+    num_orders: -1,
     imageUrl: "",
     gerber: "",
     order: {
@@ -335,6 +447,11 @@ export default {
     silkOpt: ["White", "Black", "None"],
     disabled_silk: [],
     fast_time: "",
+    drawing: false,
+    finish: "Immersion Tin",
+    drill_diameter_not_tenth_mm: false,
+    drill_diameter_too_small: false,
+    trace_width_error: false,
   }),
   methods: {
     updatePrice() {
@@ -348,15 +465,28 @@ export default {
         this.order.width = this.order.height;
         this.order.height = temp;
       }
-      // if (this.width > 50 || this.height > 50)
-      this.price =
-        parseInt(this.order.quantity) *
+      if (this.width > 50 || this.height > 50) {
+        this.price =
+          parseInt(this.order.quantity) *
           parseFloat(this.order.width / 10) *
           parseFloat(this.order.height / 10) *
-          pricePerCm +
-        0.3;
-      // else this.price = 2 * this.quantity;
-      if (this.order.speed == "Fast") this.price *= 2;
+          pricePerCm;
+      } else if (
+        parseFloat(this.order.width / 10) *
+          parseFloat(this.order.height / 10) *
+          pricePerCm <
+        2.0
+      ) {
+        this.price =
+          2.0 +
+          (parseInt(this.order.quantity) - 1) *
+            parseFloat(this.order.width / 10) *
+            parseFloat(this.order.height / 10) *
+            pricePerCm;
+      } else {
+        this.price = 2.0 * parseInt(this.order.quantity);
+      }
+      if (this.order.speed == "Fast") this.price *= 3.0;
       else if (this.order.speed == "Turbo") {
         var panels =
           this.order.quantity / Math.floor(279.4 / this.order.height);
@@ -368,16 +498,16 @@ export default {
         if (this.order.speed == "Economy") this.price += 2;
         else if (this.order.speed == "Fast") this.price += 4;
       }
-      if (this.sale != 1) {
+      if (this.sale != 1 && this.num_orders == 0) {
         this.salePrice = this.price * this.sale;
         this.order.price = this.salePrice;
       } else this.order.price = this.price;
     },
     onPickFile() {
-      this.loading = true;
       this.$refs.fileInput.click();
     },
     async onFilePicked(e) {
+      this.loading = true;
       this.failed = false;
 
       try {
@@ -424,10 +554,9 @@ export default {
 
         var svg_file = this.top_svg ? this.top_svg : this.drawing;
 
-        formData = { orderNum: this.order.orderNum, img: svg_file.svg() };
         const img_response = await axios.post(
           this.$baseUrl + "/api/upload_image/",
-          formData,
+          { orderNum: this.order.orderNum, img: svg_file.svg() },
           {
             headers: {
               "Content-Type": "multipart/form-data",
@@ -453,6 +582,13 @@ export default {
         this.$router.push("/");
       }
     },
+    accountRedirect() {
+      if (!this.failed && this.width) {
+        this.addToCart();
+        // this.$router.push("/store");
+        this.$router.push("/login");
+      }
+    },
     addToCart() {
       if (this.$cart.length == 0)
         this.$cart.push(
@@ -460,10 +596,32 @@ export default {
             Math.random().toString(36).substring(2, 10)
         );
       this.$cart.push(this.order);
-      console.log(this.$cart);
     },
+
     //gerber-renderer
     render() {
+      this.drc = true;
+
+      if (this.drc) {
+        // setup drc error bools
+        this.drill_diameter_not_tenth_mm = false;
+        this.drill_diameter_too_small = false;
+        this.annular_ring_error = false; //TODO
+        this.pad_to_pad_clearance_error = false; //TODO
+        this.trace_clearance_error = false; //TODO
+        this.trace_width_error = false;
+        // setup capabilities
+        this.min_trace_width = 0.127;
+        this.min_trace_clearance = 0.127;
+        this.min_annular_ring = 0.13;
+        this.min_pad_to_pad = 0.2;
+        this.min_drill_diameter = 0.3;
+        // setup drc arrays
+        this.traces = [];
+        this.pads = [];
+        this.drc_scale = 1;
+      }
+
       if (
         this.files["drill"] &&
         this.files["outline"] &&
@@ -487,13 +645,32 @@ export default {
       } else {
         console.log("No Top Files");
       }
+      // print drc results
+      if (this.drc) {
+        console.log("\nDesign Rules Check Results:");
+        console.log(
+          "Drill diameter not tenth of mm:" + this.drill_diameter_not_tenth_mm
+        );
+        console.log(
+          "Drill diameter below minimum:" + this.drill_diameter_too_small
+        );
+        // console.log("Annular ring too small:" + this.annular_ring_error);
+        // console.log(
+        //   "Pad to pad clearance too small:" + this.pad_to_pad_clearance_error
+        // );
+        // console.log(
+        //   "Trace to trace clearance too small:" + this.trace_clearance_error
+        // );
+        console.log("Trace width too small:" + this.trace_width_error);
+      }
     },
+
     draw_svg(layer, filename) {
-      // this.drawing.rect(100, 100).attr({ fill: "#f06" });
+      this.copper_bool = false;
       if (!this.width) {
         this.set_dimensions();
-
         this.scale = this.max_height / this.height;
+
         if (this.max_width / this.width < this.scale)
           this.scale = this.max_width / this.width;
       }
@@ -513,22 +690,24 @@ export default {
         .fill("#C22F20");
       // .fill("#f0e6aa");
 
-      if (this.verbose) console.log("Milling Outline");
-      this.init_file(this.files["outline"]);
-      this.draw_macros(this.files["outline"], "#C22F20");
-
+      // if (this.verbose) console.log("Milling Outline");
+      // this.init_file(this.files["outline"]);
+      // this.draw_macros(this.files["outline"], "green");
+      this.copper_bool = true;
       if (this.verbose) console.log("Etching Copper");
-      this.init_file(this.files[layer + "_copper"]);
-      this.draw_macros(this.files[layer + "_copper"], "#FF2C16");
+      this.init_file(layer + "_copper");
+      this.clear_color = "#C22F20";
+      this.draw_macros(this.files[layer + "_copper"], "#f23913");
+      this.copper_bool = false;
 
       if (this.files[layer + "_silk"] && this.silk_bool) {
         if (this.verbose) console.log("Curing Silk Screen");
-        this.init_file(this.files[layer + "_silk"]);
+        this.init_file(layer + "_silk");
         this.draw_macros(this.files[layer + "_silk"], "white");
       }
 
       if (this.verbose) console.log("Applying Solder Mask");
-      this.init_file(this.files[layer + "_mask"]);
+      this.init_file(layer + "_mask");
       this.draw_macros(this.files[layer + "_mask"], "#AFA9A5");
 
       // draw drill holes
@@ -537,6 +716,512 @@ export default {
 
       // save svg
       // fs.writeFileSync(this.output_folder + filename, this.drawing.svg());
+    },
+
+    draw_macros(file, color) {
+      this.last_x = -1;
+      this.last_y = -1;
+      if (
+        this.aperture_locs.length > 0 &&
+        file.indexOf("X") < this.aperture_locs[0][1] &&
+        file.indexOf("X") != -1
+      ) {
+        this.draw_section(
+          file.substring(0, this.aperture_locs[0][1]),
+          false,
+          color
+        );
+      }
+      this.aperture_locs.forEach((macro) => {
+        if (file == this.files["outline"])
+          this.polygon_fill(file.substring(macro[1], macro[2]), color);
+        else
+          this.draw_section(
+            file.substring(macro[1], macro[2]),
+            macro[0],
+            color
+          );
+      });
+    },
+
+    draw_section(g_code, a_id, color) {
+      var radius, shape;
+      if (a_id) {
+        radius = parseFloat(this.apertures[a_id][1]);
+        shape = this.apertures[a_id][0];
+      }
+      var g_loc = 0;
+      var x_loc = 0;
+      x = this.last_x;
+      y = this.last_y;
+      this.fill_polarity = 1; //dark
+      // indexOf all coords && draw path
+      var path = "";
+      g_loc = g_code.indexOf("G");
+
+      //get fill polarity
+      if (g_code.indexOf("LPC*%") < g_loc && g_code.indexOf("LPC*%") != -1)
+        this.fill_polarity = 0;
+
+      // case where no g code is present for first move
+      x_loc = g_code.indexOf("X");
+      if (x_loc < g_loc || g_loc == -1) {
+        g_code = "G01*" + g_code.substring(x_loc);
+        g_loc = 0;
+      }
+
+      while (g_loc != -1) {
+        var code = g_code.substring(g_loc, g_loc + 3);
+        var next_code = g_code.indexOf("G", g_loc + 1);
+        if (code == "G37") code = "G01";
+        if (code == "G36") {
+          next_code = g_code.indexOf("G37", g_loc);
+          this.polygon_fill(g_code.substring(g_loc, next_code), color);
+          g_loc = next_code;
+        } else {
+          x_loc = g_code.indexOf("X", g_loc + 1);
+          while (
+            (x_loc < next_code && x_loc != -1) ||
+            (next_code == -1 && x_loc != -1)
+          ) {
+            var y_loc = g_code.indexOf("Y", x_loc);
+            if (code == "G01") {
+              var d_code = g_code.substring(
+                g_code.indexOf("D", x_loc),
+                g_code.indexOf("D", x_loc) + 3
+              );
+              if (d_code == "D01" && path == "" && x != -1)
+                path += "M" + x + "," + y;
+              var x =
+                (Math.abs(parseFloat(g_code.substring(x_loc + 1, y_loc))) /
+                  this.x_decimals -
+                  this.min_x) *
+                this.scale;
+              var y =
+                (Math.abs(
+                  parseFloat(
+                    g_code.substring(y_loc + 1, g_code.indexOf("D", y_loc))
+                  )
+                ) /
+                  this.y_decimals -
+                  this.min_y) *
+                this.scale;
+
+              if (d_code == "D02" || path == "") {
+                path += "M" + x + "," + y;
+                if (
+                  g_code.indexOf(
+                    "D01",
+                    y_loc,
+                    g_code.indexOf("D02", g_code.indexOf("D", x_loc) + 3)
+                  ) != -1 &&
+                  shape == "C"
+                )
+                  this.drawing
+                    .circle(radius * 2)
+                    .center(x, y)
+                    .fill(color);
+              } else if (d_code == "D01") {
+                path += "L" + x + "," + y;
+                if (this.drc && this.copper_bool && this.last_x != -1) {
+                  this.drc_check(
+                    "trace",
+                    radius,
+                    [this.last_x, this.last_y],
+                    [x, y]
+                  );
+                }
+              }
+              if (d_code == "D01" || d_code == "D03") {
+                if (shape == "C")
+                  this.drawing
+                    .circle(radius * 2)
+                    .center(x, y)
+                    .fill(color);
+                else if (shape == "O")
+                  this.drawing
+                    .ellipse(
+                      parseFloat(this.apertures[a_id][1]),
+                      parseFloat(this.apertures[a_id][2])
+                    )
+                    .center(x, y)
+                    .fill(color);
+                else if (shape == "R") {
+                  var width = parseFloat(this.apertures[a_id][1]);
+                  var height = parseFloat(this.apertures[a_id][2]);
+                  this.drawing
+                    .rect(width, height)
+                    .move(parseFloat(x) - width / 2, parseFloat(y) - height / 2)
+                    .fill(color);
+                }
+                // else console.log(shape);
+              }
+            } else if (code == "G02" || code == "G03") {
+              var sweep_flag = "1";
+              if (code == "G02") sweep_flag = "0";
+              path += this.draw_arc(
+                g_code.substring(x_loc - 3, g_code.indexOf("*", x_loc)),
+                sweep_flag,
+                [x, y]
+              );
+            }
+            // else console.log(code);
+            x_loc = g_code.indexOf("X", x_loc + 1);
+          }
+
+          if (
+            g_code.indexOf("LPC*%", g_loc) < next_code &&
+            g_code.indexOf("LPC*%", g_loc) != -1
+          )
+            this.fill_polarity = 0;
+          if (
+            g_code.indexOf("LPD*%", g_loc) < next_code &&
+            g_code.indexOf("LPD*%", g_loc) > g_code.indexOf("LPC*%", g_loc) &&
+            g_code.indexOf("LPD*%", g_loc) != -1
+          )
+            this.fill_polarity = 1;
+          g_loc = next_code;
+        }
+      }
+      this.last_x = x;
+      this.last_y = y;
+
+      if (path)
+        this.drawing
+          .path(path)
+          .stroke({ color: color, width: radius * 2 })
+          .fill("none");
+    },
+    drc_check(p_type, radius, start_pos, end_pos) {
+      radius /= this.scale / this.drc_scale;
+      // start_pos[0] = float(start_pos[0]) / self.scale/self.drc_scale
+      // start_pos[1] = float(start_pos[1]) / self.scale/self.drc_scale
+      // end_pos[0] = float(end_pos[0]) / self.scale/self.drc_scale
+      // end_pos[1] = float(end_pos[1]) / self.scale/self.drc_scale
+      if (p_type == "trace") {
+        // width check
+        if (radius * 2 < this.min_trace_width) this.trace_width_error = true;
+      }
+    },
+
+    draw_arc(g_code, sweep_flag, start_pos, multiquadrant_bool = true) {
+      var y_loc = g_code.indexOf("Y");
+      var i_loc = g_code.indexOf("I");
+      var d_loc = g_code.indexOf("D");
+      var x =
+        (Math.abs(parseFloat(g_code.substring(4, y_loc))) / this.x_decimals -
+          this.min_x) *
+        this.scale;
+      var i = 0;
+      var j = 0;
+
+      if (g_code.indexOf("J") != -1) {
+        j =
+          (parseFloat(g_code.substring(g_code.indexOf("J") + 1, d_loc)) /
+            this.y_decimals) *
+          this.scale;
+        d_loc = g_code.indexOf("J");
+      }
+      var y =
+        (Math.abs(parseFloat(g_code.substring(y_loc + 1, d_loc))) /
+          this.y_decimals -
+          this.min_y) *
+        this.scale;
+      if (i_loc != -1) {
+        y =
+          (Math.abs(parseFloat(g_code.substring(y_loc + 1, i_loc))) /
+            this.y_decimals -
+            this.min_y) *
+          this.scale;
+        i =
+          (parseFloat(g_code.substring(g_code.indexOf("I") + 1, d_loc)) /
+            this.x_decimals) *
+          this.scale;
+      }
+
+      var center = [parseFloat(start_pos[0]) + i, parseFloat(start_pos[1]) + j];
+
+      var start_angle = this.find_angle(start_pos, center);
+      var end_angle = this.find_angle([x, y], center);
+      var angle = end_angle - start_angle;
+      if (sweep_flag == "0") angle = start_angle - end_angle;
+
+      if (!multiquadrant_bool && angle > 0.5) {
+        if (sweep_flag == "0") angle = end_angle - start_angle;
+        else angle = start_angle - end_angle;
+      }
+      var large_arc_flag = 0;
+      if (angle >= 1) large_arc_flag = 1;
+
+      var radius = Math.sqrt(i ** 2 + j ** 2);
+
+      return (
+        "A " +
+        radius +
+        " " +
+        radius +
+        " 0 " +
+        large_arc_flag +
+        " " +
+        sweep_flag +
+        " " +
+        x +
+        " " +
+        y
+      );
+    },
+
+    find_angle(pos, center) {
+      var y = parseFloat(pos[1]) - parseFloat(center[1]);
+      var x = parseFloat(pos[0]) - parseFloat(center[0]);
+      var angle = Math.atan2(y, x);
+      angle /= Math.PI;
+      if (angle < 0) angle += 2;
+      return angle;
+    },
+
+    polygon_fill(g_code, color) {
+      var g_loc = 0;
+      var x_loc = 0;
+      // indexOf all coords and draw path
+      var path = "";
+
+      g_loc = g_code.indexOf("G");
+      // case where no g code is present for first move
+      x_loc = g_code.indexOf("X");
+      if (x_loc < g_loc || g_loc == -1) {
+        g_code = "G01*" + g_code.substring(x_loc);
+        g_loc = 0;
+      }
+      while (g_loc != -1) {
+        var code = g_code.substring(g_loc, g_loc + 3);
+        if (code == "G36") code = "G01";
+        var next_code = g_code.indexOf("G", g_loc + 1);
+        x_loc = g_code.indexOf("X", g_loc + 1);
+        while (
+          (x_loc < next_code && x_loc != -1) ||
+          (next_code == -1 && x_loc != -1)
+        ) {
+          var y_loc = g_code.indexOf("Y", x_loc);
+          if (code == "G01") {
+            var x =
+              (Math.abs(parseFloat(g_code.substring(x_loc + 1, y_loc))) /
+                this.x_decimals -
+                this.min_x) *
+              this.scale;
+            var y =
+              (Math.abs(
+                parseFloat(
+                  g_code.substring(y_loc + 1, g_code.indexOf("D", y_loc))
+                )
+              ) /
+                this.y_decimals -
+                this.min_y) *
+              this.scale;
+            if (
+              g_code.substring(
+                g_code.indexOf("D", x_loc),
+                g_code.indexOf("D", x_loc) + 3
+              ) == "D02" ||
+              path == ""
+            )
+              path += "M" + x + "," + y;
+            else if (
+              g_code.substring(
+                g_code.indexOf("D", x_loc),
+                g_code.indexOf("D", x_loc) + 3
+              ) == "D01"
+            );
+            path += "L" + x + "," + y;
+          } else if (code == "G02" || code == "G03") {
+            var sweep_flag = "1";
+            if (code == "G02") sweep_flag = "0";
+
+            path += this.draw_arc(
+              g_code.substring(x_loc - 3, g_code.indexOf("*", x_loc)),
+              sweep_flag,
+              [x, y]
+            );
+          }
+          x_loc = g_code.indexOf("X", x_loc + 1);
+        }
+        g_loc = next_code;
+      }
+      path += " Z";
+      if (this.fill_polarity == 1)
+        this.drawing.path(path).stroke("none").fill(color);
+      else this.drawing.path(path).stroke("none").fill(this.clear_color);
+    },
+
+    drill_holes() {
+      this.get_drill_decimals();
+      this.get_drill_tools();
+      var file = this.files["drill"].substring(this.drill_header_end);
+      this.get_drill_locs(file);
+
+      this.drill_tools.forEach((tool) => {
+        var diameter = tool["diameter"];
+
+        // draw all holes for current tool
+        var section = file.substring(tool["start"], tool["end"]);
+
+        var curr_x = section.indexOf("X");
+        var curr_y = section.indexOf("Y", curr_x);
+
+        // indexOf and draw circles at hole coords
+        while (curr_x != -1) {
+          var y_len = 1;
+          if (
+            section.substring(curr_y + 1, curr_y + 1 + y_len) == "+" ||
+            section.substring(curr_y + 1, curr_y + 1 + y_len) == "-"
+          )
+            curr_y++;
+          while (
+            !isNaN(section.substring(curr_y + 1, curr_y + 1 + y_len)) &&
+            y_len < 12
+          ) {
+            y_len += 1;
+          }
+          var hole_x =
+            Math.abs(parseFloat(section.substring(curr_x + 1, curr_y))) /
+            (section.substring(curr_x + 1, curr_y).indexOf(".") == -1
+              ? this.drill_decimals
+              : 1);
+          var hole_y =
+            Math.abs(
+              parseFloat(section.substring(curr_y + 1, curr_y + 1 + y_len))
+            ) /
+            (section.substring(curr_y + 1, curr_y + 1 + y_len).indexOf(".") ==
+            -1
+              ? this.drill_decimals
+              : 1);
+          this.drawing
+            .circle(diameter * this.drill_scale)
+            .center(
+              hole_x * this.drill_scale - this.min_x * this.scale,
+              hole_y * this.drill_scale - this.min_y * this.scale
+            )
+            .fill("black");
+          curr_x = section.indexOf("X", curr_y);
+          curr_y = section.indexOf("Y", curr_x);
+        }
+      });
+    },
+
+    get_drill_decimals() {
+      var file = this.files["drill"];
+      this.drill_scale = this.scale;
+      var index = file.indexOf("METRIC");
+      if (index != -1) {
+        var initial = file.indexOf(".", index) + 1;
+        var i = initial;
+        if (i < file.indexOf("T", index) && i < file.indexOf(";", index)) {
+          while (file[i] == "0") i++;
+          this.drill_decimals = Math.pow(10, i - initial);
+        } else {
+          this.drill_decimals = 1000;
+        }
+        if (this.unit == "in") this.drill_scale = this.scale / 25.4;
+      } else if (file.indexOf("INCH") != -1) {
+        index = file.indexOf("INCH");
+        initial = file.indexOf(".", index) + 1;
+        i = initial;
+        if (i < file.indexOf("T", index) && i < file.indexOf(";", index)) {
+          while (file[i] == "0") i++;
+          this.drill_decimals = Math.pow(10, i - initial);
+        } else {
+          this.drill_decimals = 10000;
+        }
+        if (this.unit == "mm") this.drill_scale = this.scale * 25.4;
+      } else this.drill_decimals = 1000;
+    },
+
+    get_drill_tools() {
+      var metric_drill_bool = true;
+      this.drill_tools = [];
+      var file = this.files["drill"];
+      var tool_start = file.indexOf("METRIC") + 7;
+      if (tool_start == 6) {
+        tool_start = file.indexOf("INCH") + 5;
+        metric_drill_bool = false;
+      }
+      this.drill_header_end = file.indexOf("%", tool_start);
+      file = file.substring(tool_start, this.drill_header_end);
+      file = this.remove_comments(file);
+
+      var index = -2;
+      var next_index = -2;
+      while (next_index != file.length) {
+        var curr_tool = {};
+
+        if (next_index != -2) index = next_index;
+        else {
+          index = file.indexOf("T", index + 2);
+          if (file.charAt(index + 1) == "Z")
+            index = file.indexOf("T", index + 2);
+        }
+
+        if (index == -1) break;
+
+        //set tool id and next tool id
+        var c_index = file.indexOf("C", index);
+        curr_tool["name"] = file.substring(index, c_index);
+
+        next_index = file.indexOf("T", c_index);
+        if (next_index == -1) {
+          next_index = file.length;
+          curr_tool["next"] = "";
+        } else {
+          curr_tool["next"] = file.substring(
+            next_index,
+            file.indexOf("C", next_index)
+          );
+        }
+
+        //get diameter
+        curr_tool["diameter"] = file.substring(c_index + 1, next_index);
+
+        //drc checks
+        var diam = curr_tool["diameter"];
+        if (this.drc && !this.drill_diameter_not_tenth_mm) {
+          if (!metric_drill_bool) diam *= 25.4;
+          if (Math.floor(diam * 10) != diam * 10)
+            this.drill_diameter_not_tenth_mm = true;
+        }
+
+        if (this.drc && !this.drill_diameter_too_small) {
+          diam = curr_tool["diameter"];
+          if (!metric_drill_bool) diam *= 25.4;
+          if (diam < this.min_drill_diameter)
+            this.drill_diameter_too_small = true;
+        }
+
+        this.drill_tools.push(curr_tool);
+      }
+    },
+    get_drill_locs(file) {
+      this.drill_tools.forEach((tool) => {
+        tool["start"] = file.indexOf(tool["name"]);
+        tool["end"] = file.indexOf("T", tool["start"] + 1);
+        if (tool["end"] == -1) tool["end"] = file.indexOf("M", tool["start"]);
+      });
+    },
+
+    remove_comments(file) {
+      var start_index = file.indexOf(";");
+
+      while (start_index != -1) {
+        var end_index = file.indexOf("\n", start_index);
+        if (
+          file.indexOf("\r", start_index) < end_index &&
+          file.indexOf("\r", start_index) != -1
+        )
+          end_index = file.indexOf("\r", start_index);
+        if (end_index == -1) end_index = file.length;
+        file = file.substring(0, start_index) + file.substring(end_index);
+        start_index = file.indexOf(";");
+      }
+      return file.split("\n").join("").split("\r").join("");
     },
     set_dimensions() {
       const file = this.files["outline"];
@@ -585,19 +1270,9 @@ export default {
             this.unit
         );
     },
-    set_decimal_places(file) {
-      var index = file.indexOf("FSLAX");
-      this.x_decimals = file.substring(index + 6, index + 7);
-      this.y_decimals = file.substring(index + 9, index + 10);
-      this.x_decimals = Math.pow(10, this.x_decimals);
-      this.y_decimals = Math.pow(10, this.y_decimals);
-    },
-    init_file(file) {
-      this.set_decimal_places(file);
-      this.store_apertures(file);
-      this.find_aperture_locations(file);
-    },
-    store_apertures(file) {
+
+    store_apertures(filename) {
+      var file = this.files[filename];
       // [[id,type, radius, additional rect dimention]]
       this.apertures = {};
       var index = file.indexOf("ADD");
@@ -674,7 +1349,11 @@ export default {
         this.apertures[a_id] = profile;
         index = file.indexOf("ADD", index + 1);
       }
+      this.files[filename] = file.substring(
+        file.indexOf("%", file.indexOf("ADD" + a_id)) + 1
+      );
     },
+
     find_aperture_locations(file) {
       this.aperture_locs = [];
       for (var key in this.apertures) {
@@ -705,374 +1384,19 @@ export default {
       }
       return indices;
     },
-    draw_macros(file, color) {
-      this.aperture_locs.forEach((macro) => {
-        if (file == this.files["outline"])
-          this.polygon_fill(file.substring(macro[1], macro[2]), color);
-        else
-          this.draw_section(
-            file.substring(macro[1], macro[2]),
-            macro[0],
-            color
-          );
-      });
+
+    set_decimal_places(file) {
+      var index = file.indexOf("FSLAX");
+      this.x_decimals = file.substring(index + 6, index + 7);
+      this.y_decimals = file.substring(index + 9, index + 10);
+      this.x_decimals = Math.pow(10, this.x_decimals);
+      this.y_decimals = Math.pow(10, this.y_decimals);
     },
 
-    draw_section(g_code, a_id, color) {
-      const radius = parseFloat(this.apertures[a_id][1]);
-      const shape = this.apertures[a_id][0];
-      var g_loc = 0;
-      var x_loc = 0;
-      // indexOf all coords && draw path
-      var path = "";
-      g_loc = g_code.indexOf("G");
-
-      // case where no g code is present for first move
-      x_loc = g_code.indexOf("X");
-      if (x_loc < g_loc || g_loc == -1) {
-        g_code = "G01*" + g_code.substring(x_loc);
-        g_loc = 0;
-      }
-
-      while (g_loc != -1) {
-        var code = g_code.substring(g_loc, g_loc + 3);
-        var next_code = "";
-        if (code == "G36") {
-          next_code = g_code.indexOf("G37", g_loc);
-          this.polygon_fill(g_code.substring(g_loc, next_code), color);
-          g_loc = g_code.indexOf("G", next_code + 1);
-        } else {
-          next_code = g_code.indexOf("G", g_loc + 1);
-          x_loc = g_code.indexOf("X", g_loc + 1);
-          while (
-            (x_loc < next_code && x_loc != -1) ||
-            (next_code == -1 && x_loc != -1)
-          ) {
-            var y_loc = g_code.indexOf("Y", x_loc);
-            if (code == "G01") {
-              var x =
-                (Math.abs(parseFloat(g_code.substring(x_loc + 1, y_loc))) /
-                  this.x_decimals -
-                  this.min_x) *
-                this.scale;
-              var y =
-                (Math.abs(
-                  parseFloat(
-                    g_code.substring(y_loc + 1, g_code.indexOf("D", y_loc))
-                  )
-                ) /
-                  this.y_decimals -
-                  this.min_y) *
-                this.scale;
-              var d_code = g_code.substring(
-                g_code.indexOf("D", x_loc),
-                g_code.indexOf("D", x_loc) + 3
-              );
-              if (d_code == "D02" || path == "") {
-                path += "M" + x + "," + y;
-                if (
-                  g_code.indexOf(
-                    "D01",
-                    y_loc,
-                    g_code.indexOf("D02", g_code.indexOf("D", x_loc) + 3)
-                  ) != -1 &&
-                  shape == "C"
-                )
-                  this.drawing
-                    .circle(radius * 2)
-                    .center(x, y)
-                    .fill(color);
-              } else if (d_code == "D01") path += "L" + x + "," + y;
-              if (d_code == "D01" || d_code == "D03") {
-                if (shape == "C")
-                  this.drawing
-                    .circle(radius * 2)
-                    .center(x, y)
-                    .fill(color);
-                else if (shape == "O")
-                  this.drawing
-                    .ellipse(
-                      parseFloat(this.apertures[a_id][1]),
-                      parseFloat(this.apertures[a_id][2])
-                    )
-                    .center(x, y)
-                    .fill(color);
-                else if (shape == "R") {
-                  var width = parseFloat(this.apertures[a_id][1]);
-                  var height = parseFloat(this.apertures[a_id][2]);
-                  this.drawing
-                    .rect(width, height)
-                    .move(parseFloat(x) - width / 2, parseFloat(y) - height / 2)
-                    .fill(color);
-                } else console.log(shape);
-              }
-            } else if (code == "G02" || code == "G03") {
-              var sweep_flag = "1";
-              if (code == "G02") sweep_flag = "0";
-              path += this.draw_arc(
-                g_code.substring(x_loc - 3, g_code.indexOf("*", x_loc)),
-                sweep_flag,
-                [x, y]
-              );
-            } else console.log(code);
-            x_loc = g_code.indexOf("X", x_loc + 1);
-          }
-          g_loc = next_code;
-        }
-      }
-
-      this.drawing
-        .path(path)
-        .stroke({ color: color, width: radius * 2 })
-        .fill("none");
-    },
-
-    draw_arc(g_code, sweep_flag, start_pos, multiquadrant_bool = true) {
-      var y_loc = g_code.indexOf("Y");
-      var i_loc = g_code.indexOf("I");
-      var d_loc = g_code.indexOf("D");
-      var x =
-        (Math.abs(parseFloat(g_code.substring(4, y_loc))) / this.x_decimals -
-          this.min_x) *
-        this.scale;
-      var i = 0;
-      var j = 0;
-
-      if (g_code.indexOf("J") != -1) {
-        j =
-          (parseFloat(g_code.substring(g_code.indexOf("J") + 1, d_loc)) /
-            this.y_decimals) *
-          this.scale;
-        d_loc = g_code.indexOf("J");
-      }
-      var y;
-      if (i_loc != -1) {
-        y =
-          (Math.abs(parseFloat(g_code.substring(y_loc + 1, i_loc))) /
-            this.y_decimals -
-            this.min_y) *
-          this.scale;
-        i =
-          (parseFloat(g_code.substring(g_code.indexOf("I") + 1, d_loc)) /
-            this.x_decimals) *
-          this.scale;
-      } else
-        y =
-          (Math.abs(parseFloat(g_code.substring(y_loc + 1, d_loc))) /
-            this.y_decimals -
-            this.min_y) *
-          this.scale;
-
-      var center = [parseFloat(start_pos[0]) + i, parseFloat(start_pos[1]) + j];
-
-      var start_angle = this.find_angle(start_pos, center);
-      var end_angle = this.find_angle([x, y], center);
-      var angle;
-      if (sweep_flag == "0") angle = start_angle - end_angle;
-      else angle = end_angle - start_angle;
-
-      if (!multiquadrant_bool && angle > 0.5) {
-        if (sweep_flag == "0") angle = end_angle - start_angle;
-        else angle = start_angle - end_angle;
-      }
-      var large_arc_flag = 0;
-      if (angle >= 1) large_arc_flag = 1;
-
-      var radius = Math.sqrt(i ** 2 + j ** 2);
-
-      return (
-        "A " +
-        radius +
-        " " +
-        radius +
-        " 0 " +
-        large_arc_flag +
-        " " +
-        sweep_flag +
-        " " +
-        x +
-        " " +
-        y
-      );
-    },
-
-    find_angle(pos, center) {
-      var y = parseFloat(pos[1]) - parseFloat(center[1]);
-      var x = parseFloat(pos[0]) - parseFloat(center[0]);
-      var angle = Math.atan2(y, x);
-      angle /= Math.PI;
-      if (angle < 0) angle += 2;
-      return angle;
-    },
-
-    polygon_fill(g_code, color) {
-      var g_loc = 0;
-      var x_loc = 0;
-      // indexOf all coords and draw path
-      var path = "";
-
-      g_loc = g_code.indexOf("G");
-      // case where no g code is present for first move
-      x_loc = g_code.indexOf("X");
-      if (x_loc < g_loc || g_loc == -1) {
-        g_code = "G01*" + g_code.substring(x_loc);
-        g_loc = 0;
-      }
-      while (g_loc != -1) {
-        var code = g_code.substring(g_loc, g_loc + 3);
-        var next_code = g_code.indexOf("G", g_loc + 1);
-        x_loc = g_code.indexOf("X", g_loc + 1);
-        while (
-          (x_loc < next_code && x_loc != -1) ||
-          (next_code == -1 && x_loc != -1)
-        ) {
-          var y_loc = g_code.indexOf("Y", x_loc);
-          if (code == "G01") {
-            var x =
-              (Math.abs(parseFloat(g_code.substring(x_loc + 1, y_loc))) /
-                this.x_decimals -
-                this.min_x) *
-              this.scale;
-            var y =
-              (Math.abs(
-                parseFloat(
-                  g_code.substring(y_loc + 1, g_code.indexOf("D", y_loc))
-                )
-              ) /
-                this.y_decimals -
-                this.min_y) *
-              this.scale;
-            if (
-              g_code.substring(
-                g_code.indexOf("D", x_loc),
-                g_code.indexOf("D", x_loc) + 3
-              ) == "D02" ||
-              path == ""
-            )
-              path += "M" + x + "," + y;
-            else if (
-              g_code.substring(
-                g_code.indexOf("D", x_loc),
-                g_code.indexOf("D", x_loc) + 3
-              ) == "D01"
-            );
-            path += "L" + x + "," + y;
-          } else if (code == "G02" || code == "G03") {
-            var sweep_flag = "1";
-            if (code == "G02") sweep_flag = "0";
-            path += this.draw_arc(
-              g_code.substring(x_loc - 3, g_code.indexOf("*", x_loc)),
-              sweep_flag,
-              [x, y]
-            );
-          }
-          x_loc = g_code.indexOf("X", x_loc + 1);
-        }
-        g_loc = next_code;
-      }
-      path += " Z";
-      this.drawing.path(path).stroke("none").fill(color);
-    },
-
-    drill_holes() {
-      var tool_num = 1;
-      var leading_zero = true;
-      var diameter = 0;
-      while (diameter != -1 && tool_num != -1) {
-        // get diameter index of current tool
-        diameter = this.files["drill"].indexOf("T0" + tool_num + "C");
-        if (
-          diameter == -1 &&
-          this.files["drill"].indexOf("T" + tool_num + "C") == -1
-        )
-          break;
-        else {
-          if (diameter == -1) {
-            leading_zero = false;
-            diameter = this.files["drill"].indexOf("T" + tool_num + "C");
-          }
-          // draw all holes for current tool
-          var curr_holes =
-            this.files["drill"].indexOf(
-              "T" + (leading_zero ? "0" : "") + tool_num,
-              diameter + 4
-            ) + 3;
-          // get diameter of current tool
-          var d_len = 0;
-          var increment = leading_zero ? 4 : 3;
-
-          while (
-            !isNaN(
-              this.files["drill"].substring(
-                diameter + increment,
-                diameter + increment + d_len
-              )
-            )
-          ) {
-            d_len += 1;
-          }
-
-          diameter = parseFloat(
-            this.files["drill"].substring(
-              diameter + increment,
-              diameter + increment + d_len
-            )
-          );
-
-          var next_tool = this.files["drill"].indexOf(
-            "T" + (leading_zero ? "0" : "") + (tool_num + 1),
-            curr_holes
-          );
-          var curr_x = this.files["drill"].indexOf("X", curr_holes);
-          var curr_y = this.files["drill"].indexOf("Y", curr_x);
-
-          // indexOf and draw circles at hole coords
-          while (curr_x < next_tool || (next_tool == -1 && curr_x != -1)) {
-            var y_len = 1;
-            if (
-              this.files["drill"].substring(curr_y + 1, curr_y + 1 + y_len) ==
-                "+" ||
-              this.files["drill"].substring(curr_y + 1, curr_y + 1 + y_len) ==
-                "-"
-            )
-              curr_y++;
-            while (
-              !isNaN(
-                this.files["drill"].substring(curr_y + 1, curr_y + 1 + y_len)
-              )
-            )
-              y_len += 1;
-            var hole_x =
-              Math.abs(
-                parseFloat(this.files["drill"].substring(curr_x + 1, curr_y)) -
-                  this.min_x
-              ) /
-              (this.files["drill"].substring(curr_x + 1, curr_y).indexOf(".") ==
-              -1
-                ? this.x_decimals
-                : 1);
-            var hole_y =
-              Math.abs(
-                parseFloat(
-                  this.files["drill"].substring(curr_y + 1, curr_y + 1 + y_len)
-                ) - this.min_y
-              ) /
-              (this.files["drill"]
-                .substring(curr_y + 1, curr_y + 1 + y_len)
-                .indexOf(".") == -1
-                ? this.y_decimals
-                : 1);
-
-            this.drawing
-              .circle(diameter * this.scale)
-              .center(hole_x * this.scale, hole_y * this.scale)
-              .fill("black");
-            curr_x = this.files["drill"].indexOf("X", curr_y);
-            curr_y = this.files["drill"].indexOf("Y", curr_x);
-          }
-          tool_num += 1;
-        }
-      }
+    init_file(filename) {
+      this.set_decimal_places(this.files[filename]);
+      this.store_apertures(filename);
+      this.find_aperture_locations(this.files[filename]);
     },
   },
   async beforeMount() {
@@ -1098,6 +1422,7 @@ export default {
     this.total = Date.parse(this.sale_end) - Date.parse(this.currtime);
     if (this.total > 0) {
       this.sale = 0.5;
+      this.create_account_prompt = true;
     }
     this.colors = sitevars[3]
       .substring(sitevars[3].indexOf(": ") + 3, sitevars[3].length - 1)
@@ -1115,7 +1440,6 @@ export default {
     this.silkOpt = sitevars[4]
       .substring(sitevars[4].indexOf(": ") + 3, sitevars[4].length - 1)
       .split(",");
-    console.log(this.silkOpt);
     for (let i = 0; i < this.silkOpt.length; i++) {
       if (this.silkOpt[i][this.silkOpt[i].length - 1] == "-") {
         this.silkOpt[i] = this.silkOpt[i].substring(0, [
@@ -1138,6 +1462,13 @@ export default {
       sitevars[7].indexOf(": ") + 3,
       sitevars[7].length - 1
     );
+
+    if (this.$login.length > 8) {
+      this.num_orders = this.$login[8];
+      this.create_account_prompt = false;
+    } else {
+      this.num_orders = -1;
+    }
   },
   components: { Appbar, Bottom },
 };
@@ -1146,5 +1477,10 @@ export default {
 <style scoped>
 .container {
   padding-bottom: 10%;
+}
+.closed-text {
+  color: white;
+  padding: 20px;
+  padding-bottom: 10px;
 }
 </style>

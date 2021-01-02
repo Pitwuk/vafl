@@ -3,13 +3,13 @@
     <v-img
       src="../assets/whiteLogo.png"
       contain
-      max-height="50"
-      max-width="100"
+      max-height="55"
+      max-width="200"
       @click="home()"
       id="bar"
     />
     <v-toolbar-items class="toolbar_end">
-      <v-menu rounded="b-xl" offset-y :close-on-content-click="false">
+      <v-menu rounded="b-l" offset-y :close-on-content-click="false">
         <template v-slot:activator="{ attrs, on }">
           <v-btn v-bind="attrs" v-on="on" icon>
             <v-icon>mdi-cart</v-icon>
@@ -36,16 +36,38 @@
             </v-btn>
           </v-list-item>
           <v-list-item>
-            <v-btn class="checkout_button" color="primary" to="/purchase"
+            <v-btn
+              class="checkout_button"
+              color="primary"
+              to="/purchase"
+              v-if="$cart.length != 0"
               >Checkout</v-btn
             ></v-list-item
           >
         </v-list>
       </v-menu>
+      <p v-if="$login.length != 0" class="name">
+        {{ $login[0] }}
+      </p>
+      <v-menu rounded="b-l" offset-y :close-on-content-click="false">
+        <template v-slot:activator="{ attrs, on }">
+          <v-btn v-bind="attrs" v-on="on" icon>
+            <v-icon>mdi-account</v-icon>
+          </v-btn>
+        </template>
 
-      <v-btn icon to="/login">
-        <v-icon>mdi-account</v-icon>
-      </v-btn>
+        <v-list :key="login_key" max-height="700">
+          <v-list-item v-if="$login.length == 0" to="/login">
+            <v-list-item-title v-text="'Sign in'"></v-list-item-title>
+          </v-list-item>
+          <v-list-item v-if="$login.length != 0" to="/login">
+            <v-list-item-title v-text="'Manage Account'"></v-list-item-title>
+          </v-list-item>
+          <v-list-item v-if="$login.length != 0" @click="logOut()">
+            <v-list-item-title v-text="'Sign out'"></v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-toolbar-items>
   </v-app-bar>
 </template>
@@ -55,7 +77,9 @@
 
 export default {
   data() {
-    return {};
+    return {
+      login_key: 0,
+    };
   },
   methods: {
     home() {
@@ -66,8 +90,13 @@ export default {
       this.$cart.splice(index, 1);
       this.$cart_key += 1;
     },
+    logOut() {
+      console.log(this.$login);
+      this.$login.length = 0;
+      this.login_key++;
+      console.log(this.$login);
+    },
   },
-  // components: { Cart },
 };
 </script>
 
@@ -85,5 +114,9 @@ export default {
 .toolbar_end {
   position: absolute;
   right: 10px;
+}
+.name {
+  margin: auto;
+  padding: 5px;
 }
 </style>

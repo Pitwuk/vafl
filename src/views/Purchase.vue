@@ -44,6 +44,7 @@
                   ></v-text-field>
                 </v-col>
               </v-row>
+
               <v-row>
                 <v-col cols="12" md="8">
                   <v-text-field
@@ -52,6 +53,16 @@
                     label="E-mail"
                     required
                   ></v-text-field>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="12" md="8">
+                  <v-autocomplete
+                    v-model="country"
+                    :items="country_list"
+                    :rules="countryRules"
+                    label="Country"
+                  ></v-autocomplete>
                 </v-col>
               </v-row>
               <v-row>
@@ -75,27 +86,46 @@
               <v-row>
                 <v-col cols="12" md="4">
                   <v-autocomplete
+                    v-if="country == 'United States'"
                     v-model="state"
-                    :items="states"
+                    :items="us_states"
                     :rules="stateRules"
-                    label="State"
+                    label="State/Territory"
                     append-icon="mdi-city"
                   ></v-autocomplete>
+                  <v-autocomplete
+                    v-if="country == 'Canada'"
+                    v-model="state"
+                    :items="ca_provinces"
+                    :rules="stateRules"
+                    label="Province"
+                    append-icon="mdi-city"
+                  ></v-autocomplete>
+                  <v-text-field
+                    v-if="country != 'Canada' && country != 'United States'"
+                    v-model="state"
+                    label="State/Province"
+                  ></v-text-field>
                 </v-col>
                 <v-col cols="12" md="4">
                   <v-text-field
                     v-model="zip"
-                    :rules="zipRules"
                     label="Zip Code"
-                    :counter="5"
                     required
                   ></v-text-field>
                 </v-col>
               </v-row>
             </v-container>
           </v-form>
+          <v-alert transition="scale-transition" type="error" v-if="error"
+            >Shipping Information Incorrect</v-alert
+          >
 
-          <v-btn color="primary" @click="valid ? calculateShipping() : null"
+          <v-btn
+            color="primary"
+            @click="
+              valid || $login.length > 8 ? calculateShipping() : infoError()
+            "
             >Continue</v-btn
           >
 
@@ -109,6 +139,26 @@
             v-if="loading"
           ></v-progress-circular>
           <v-list>
+            <v-list-item-group>
+              <v-list-item>
+                <v-list-item-content>
+                  <h2>Price</h2>
+                </v-list-item-content>
+
+                <v-list-item-content>
+                  <h2>Est. Days</h2>
+                </v-list-item-content>
+
+                <v-list-item-content>
+                  <h2>Provider</h2>
+                </v-list-item-content>
+
+                <v-list-item-content>
+                  <h2>Method</h2>
+                </v-list-item-content>
+                <v-list-item-icon> </v-list-item-icon> </v-list-item
+            ></v-list-item-group>
+
             <v-list-item-group v-model="shippingMethod" color="primary">
               <v-list-item
                 v-for="(shippingMethod, i) in shippingRates"
@@ -116,7 +166,7 @@
               >
                 <v-list-item-content>
                   <v-list-item-title
-                    v-text="[...shippingMethod.amount][0]"
+                    v-text="'$' + [...shippingMethod.amount][0]"
                   ></v-list-item-title>
                 </v-list-item-content>
 
@@ -153,38 +203,91 @@
           <v-form v-model="valid">
             <!-- <v-textarea>Price: {{ boardPrice }} + {{ shippingRates[shippingMethod]['amount'] }} = {{totalCost}}</v-textarea> -->
             <v-container>
-              <v-list>
-                <v-list-item v-for="item in $cart.slice(1)" :key="item">
-                  <v-list-item-title v-text="item.name"></v-list-item-title>
-                  <v-list-item-title
-                    v-text="'x ' + item.quantity"
-                  ></v-list-item-title>
-                  <v-list-item-title
-                    v-text="
-                      '$' +
-                      (item.name == 'PCB Prototyping Service'
-                        ? item.price / item.quantity
-                        : item.price
-                      ).toFixed(2)
-                    "
-                  ></v-list-item-title>
-                </v-list-item>
-                <v-list-item v-for="item in $cart.slice(1)" :key="item">
-                  <v-list-item-title>Shipping:</v-list-item-title>
-                  <v-list-item-title></v-list-item-title>
-                  <v-list-item-title
-                    v-text="'$' + $shippingPrice.toFixed(2)"
-                  ></v-list-item-title>
-                </v-list-item>
-                <v-divider></v-divider>
-                <v-list-item v-for="item in $cart.slice(1)" :key="item">
-                  <v-list-item-title>Total:</v-list-item-title>
-                  <v-list-item-title></v-list-item-title>
-                  <v-list-item-title
-                    v-text="'$' + totalCost.toFixed(2)"
-                  ></v-list-item-title>
-                </v-list-item>
-              </v-list>
+              <v-row>
+                <v-col cols="12" md="9">
+                  <v-list>
+                    <v-list-item v-for="item in $cart.slice(1)" :key="item[0]">
+                      <v-list-item-title v-text="item.name"></v-list-item-title>
+                      <v-list-item-title
+                        v-text="'x ' + item.quantity"
+                      ></v-list-item-title>
+                      <v-list-item-title
+                        v-text="
+                          '$' +
+                          (item.name == 'PCB Prototyping Service'
+                            ? item.price / item.quantity
+                            : item.price
+                          ).toFixed(2)
+                        "
+                      ></v-list-item-title>
+                    </v-list-item>
+                    <v-list-item>
+                      <v-list-item-title>Shipping:</v-list-item-title>
+                      <v-list-item-title></v-list-item-title>
+                      <v-list-item-title
+                        v-text="'$' + $shippingPrice.toFixed(2)"
+                      ></v-list-item-title>
+                    </v-list-item>
+                    <v-divider></v-divider>
+                    <v-list-item>
+                      <v-list-item-title>Total:</v-list-item-title>
+                      <v-list-item-title></v-list-item-title>
+                      <v-list-item-title
+                        v-text="'$' + totalCost.toFixed(2)"
+                        :style="
+                          salePrice != 0
+                            ? 'text-decoration: line-through'
+                            : null
+                        "
+                      ></v-list-item-title>
+                    </v-list-item>
+                    <v-list-item v-if="salePrice">
+                      <v-list-item-title
+                        v-text="
+                          ' ' +
+                          Math.round(
+                            (1 - parseFloat(salePrice) / totalCost) * 100
+                          ) +
+                          '% off'
+                        "
+                      ></v-list-item-title>
+                      <v-list-item-title></v-list-item-title>
+                      <v-list-item-title
+                        style="color: red"
+                        v-text="'$' + salePrice.toFixed(2).toString()"
+                      ></v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-col>
+                <v-col cols="12" md="3">
+                  <v-card-subtitle class="headline">
+                    Promo Code
+                  </v-card-subtitle>
+
+                  <v-text-field
+                    v-model="promocode"
+                    label="Promo Code"
+                    outlined
+                  ></v-text-field>
+                  <v-progress-circular
+                    indeterminate
+                    color="accent"
+                    v-if="code_loading"
+                  ></v-progress-circular>
+
+                  <v-btn
+                    color="primary"
+                    :disabled="!promocode"
+                    @click="promocode ? applyCode() : null"
+                    >Apply</v-btn
+                  ><v-alert
+                    transition="scale-transition"
+                    type="error"
+                    v-if="code_failed"
+                    >Invalid Code</v-alert
+                  >
+                </v-col>
+              </v-row>
               <v-row>
                 <v-col cols="12" md="8">
                   <v-text-field
@@ -261,9 +364,7 @@
                   <v-text-field
                     v-model="card.cvc"
                     :rules="cvcRules"
-                    :counter="3"
                     label="CVC"
-                    v-mask="'###'"
                     required
                     outlined
                   ></v-text-field>
@@ -301,6 +402,9 @@
             color="accent"
             v-if="loading"
           ></v-progress-circular>
+          <v-alert transition="scale-transition" type="error" v-if="failed"
+            >Error Information Incorrect</v-alert
+          >
           <v-btn
             color="primary"
             :disabled="stripeCheck || !valid"
@@ -323,6 +427,8 @@ export default {
     e1: 1,
     valid: false,
     loading: false,
+    error: false,
+    failed: false,
     firstname: "",
     lastname: "",
     nameRules: [
@@ -333,6 +439,7 @@ export default {
     emailRules: [
       (v) => !!v || "E-mail is required",
       (v) => /.+@.+/.test(v) || "E-mail must be valid",
+      (v) => /.+\..+/.test(v) || "E-mail must be valid",
       (v) => v.length <= 64 || "E-mail must be less than 64 characters",
     ],
     address: "",
@@ -398,7 +505,7 @@ export default {
       Wisconsin: "WI",
       Wyoming: "WY",
     },
-    states: [
+    us_states: [
       "Alabama",
       "Alaska",
       "Arizona",
@@ -451,13 +558,279 @@ export default {
       "West Virginia",
       "Wisconsin",
       "Wyoming",
+      "American Samoa",
+      "Federated States of Micronesia",
+      "Guam",
+      "Marshall Islands",
+      "Northern Marina Islands",
+      "Palau",
+      "Puerto Rico",
+      "US Virgin Islands",
     ],
-    stateRules: [(v) => !!v || "State is required"],
+    ca_provinces: [
+      "Alberta",
+      "British Columbia",
+      "Manitoba",
+      "New Brunswick",
+      "Newfoundland and Labrador",
+      "Northwest Territories",
+      "Nova Scotia",
+      "Nunavut",
+      "Ontario",
+      "Prince Edward Island",
+      "Quebec",
+      "Saskatchewan",
+      "Yukon Territory",
+    ],
+
+    stateRules: [
+      (v) =>
+        (!!v &&
+          (this.country == "United States" || this.country == "Canada")) ||
+        "State is required",
+    ],
+    country: "United States",
+    country_list: [
+      "Afghanistan",
+      "Aland Islands",
+      "Albania",
+      "Algeria",
+      "Andorra",
+      "Angola",
+      "Anguilla",
+      "Antigua and Barbuda",
+      "Argentina",
+      "Armenia",
+      "Aruba",
+      "Ascension",
+      "Australia",
+      "Austria",
+      "Azerbaijan",
+      "Bahamas",
+      "Bahrain",
+      "Bangladesh",
+      "Barbados",
+      "Belarus",
+      "Belgium",
+      "Belize",
+      "Benin",
+      "Bermuda",
+      "Bhutan",
+      "Bolivia, Plurinational State of",
+      "Bosnia and Herzegovina",
+      "Botswana",
+      "Brazil",
+      "Brunei Darussalam",
+      "Bulgaria",
+      "Burkina Faso",
+      "Burundi",
+      "Cambodia",
+      "Cameroon",
+      "Canada",
+      "Cayman Islands",
+      "Central African Republic",
+      "Chad",
+      "Chile",
+      "China",
+      "Christmas Island",
+      "Cocos (Keeling) Islands",
+      "Colombia",
+      "Comoros",
+      "Congo, the Democratic Republic of the",
+      "Congo",
+      "Cook Islands",
+      "Costa Rica",
+      "Croatia",
+      "Cuba",
+      "Curaçao",
+      "Cyprus",
+      "Czech Republic",
+      "Côte d'Ivoire",
+      "Denmark",
+      "Djibouti",
+      "Dominica",
+      "Dominican Republic",
+      "Ecuador",
+      "Egypt",
+      "El Salvador",
+      "Equatorial Guinea",
+      "Eritrea",
+      "Estonia",
+      "Eswatini",
+      "Ethiopia",
+      "Falkland Islands [Malvinas]",
+      "Faroe Islands",
+      "Fiji",
+      "Finland",
+      "France",
+      "French Guiana",
+      "French Polynesia",
+      "Gabon",
+      "Gambia",
+      "Georgia",
+      "Germany",
+      "Ghana",
+      "Gibraltar",
+      "Greece",
+      "Greenland",
+      "Grenada",
+      "Guadeloupe",
+      "Guam",
+      "Guatemala",
+      "Guernsey",
+      "Guinea",
+      "Guinea-Bissau",
+      "Guyana",
+      "Haiti",
+      "Holy See (Vatican City State)",
+      "Honduras",
+      "Hong Kong",
+      "Hungary",
+      "Iceland",
+      "India",
+      "Indonesia",
+      "Iran, Islamic Republic of",
+      "Iraq",
+      "Ireland",
+      "Isle of Man",
+      "Israel",
+      "Italy",
+      "Jamaica",
+      "Japan",
+      "Jersey",
+      "Jordan",
+      "Kazakhstan",
+      "Kenya",
+      "Kiribati",
+      "Korea, Democratic People's Republic of",
+      "Korea, Republic of",
+      "Kosovo",
+      "Kuwait",
+      "Kyrgyzstan",
+      "Lao People's Democratic Republic",
+      "Latvia",
+      "Lebanon",
+      "Lesotho",
+      "Liberia",
+      "Libya",
+      "Liechtenstein",
+      "Lithuania",
+      "Luxembourg",
+      "Macao",
+      "Madagascar",
+      "Malawi",
+      "Malaysia",
+      "Maldives",
+      "Mali",
+      "Malta",
+      "Martinique",
+      "Mauritania",
+      "Mauritius",
+      "Mayotte",
+      "Mexico",
+      "Moldova, Republic",
+      "Monaco",
+      "Mongolia",
+      "Montenegro",
+      "Montserrat",
+      "Morocco",
+      "Mozambique",
+      "Myanmar",
+      "Namibia",
+      "Nauru",
+      "Nepal",
+      "Netherlands",
+      "New Caledonia",
+      "New Zealand",
+      "Nicaragua",
+      "Niger",
+      "Nigeria",
+      "Niue",
+      "Norfolk Island",
+      "North Macedonia, Republic of",
+      "Norway",
+      "Oman",
+      "Pakistan",
+      "Panama",
+      "Papua New Guinea",
+      "Paraguay",
+      "Peru",
+      "Philippines",
+      "Pitcairn",
+      "Poland",
+      "Portugal",
+      "Qatar",
+      "Romania",
+      "Russian Federation",
+      "Rwanda",
+      "Réunion",
+      "Saint Barthélemy",
+      "Saint Christopher and Nevis",
+      "Saint Helena",
+      "Saint Lucia",
+      "Saint Martin (French part)",
+      "Saint Pierre and Miquelon",
+      "Saint Vincent and the Grenadines",
+      "Samoa",
+      "San Marino",
+      "Sao Tome and Principe",
+      "Saudi Arabia",
+      "Senegal",
+      "Serbia",
+      "Seychelles",
+      "Sierra Leone",
+      "Singapore",
+      "Sint Maarten",
+      "Slovakia",
+      "Slovenia",
+      "Solomon Islands",
+      "South Africa",
+      "South Sudan, Republic of",
+      "Spain",
+      "Sri Lanka",
+      "Sudan",
+      "Suriname",
+      "Sweden",
+      "Switzerland",
+      "Syrian Arab Republic",
+      "Taiwan",
+      "Tajikistan",
+      "Tanzania, United Republic of",
+      "Thailand",
+      "Timor-Leste",
+      "Togo",
+      "Tokelau",
+      "Tonga",
+      "Trinidad and Tobago",
+      "Tristan da Cunha",
+      "Tunisia",
+      "Turkey",
+      "Turkmenistan",
+      "Turks and Caicos Islands",
+      "Tuvalu",
+      "Uganda",
+      "United Arab Emirates",
+      "United Kingdom",
+      "United States",
+      "Uruguay",
+      "Uzbekistan",
+      "Vanuatu",
+      "Venezuela, Bolivarian Republic of",
+      "Viet Nam",
+      "Virgin Islands, British",
+      "Wallis and Futuna",
+      "Western Sahara",
+      "Yemen",
+      "Zambia",
+      "Zimbabwe",
+    ],
+    countryRules: [(v) => !!v || "Country is required"],
     zip: "",
     zipRules: [
-      (v) => !!v || "Zip Code is required",
-      (v) => (!isNaN(v) && !v.includes(".")) || "Must be an integer value",
-      (v) => v.length == 5 || "Zip Code must be 5 digits",
+      (v) =>
+        (!!v &&
+          (this.country == "United States" || this.country == "Canada")) ||
+        "Zip Code is required",
     ],
     shippingRates: [],
     shippingMethod: 0,
@@ -471,13 +844,11 @@ export default {
     cardRules: [
       (v) => !!v || "Card Number is required",
       (v) => window.Stripe.validateCardNumber(v) || "Must be a valid card",
-      (v) => v.length == 19 || "Card number must be 16 digits",
     ],
     cvcRules: [
       (v) => !!v || "Card Verification Code is required",
       (v) =>
         window.Stripe.validateCVC(v) || "Card Verification Code must be valid",
-      (v) => v.length == 3 || "Card Verification Code must be 3 digits",
     ],
     dateRules: [
       (v) => !!v || "Expiration date is required",
@@ -485,8 +856,62 @@ export default {
       (v) => v.length == 5 || "Expiration date must be 4 digits",
     ],
     stripeCheck: false,
+    num_orders: 0,
+    promocode: "",
+    code_loading: false,
+    code_failed: false,
+    salePrice: false,
   }),
   methods: {
+    async applyCode() {
+      this.promocode = this.promocode.toLowerCase();
+      this.code_loading = true;
+      this.code_failed = false;
+      const formData = { password: process.env.VUE_APP_ORDER_PASS };
+
+      const response = await axios.get(
+        this.$baseUrl + "/api/sitevars/",
+        formData
+      );
+      const sitevars = response.data
+        .substring(1, response.data.length - 1)
+        .split(', "');
+      this.promo_codes = sitevars[7].substring(
+        sitevars[7].indexOf(": ") + 3,
+        sitevars[7].length - 1
+      );
+      this.promo_codes = this.promo_codes.split(";");
+
+      var self = this;
+      var match = false;
+      this.promo_codes.forEach(function (code) {
+        var discount = code.substring(code.indexOf(",") + 1);
+        code = code.substring(0, code.indexOf(","));
+        if (self.promocode == code) {
+          self.adjustPrice(discount);
+          self.code_loading = false;
+          match = true;
+        }
+      });
+      if (!match) {
+        this.code_failed = true;
+        this.code_loading = false;
+      }
+    },
+    adjustPrice(discount) {
+      this.promocode = "";
+      console.log(discount);
+      var sale = 1 - discount;
+      this.salePrice =
+        this.totalCost2 - this.productPrice + this.productPrice * sale;
+      this.salePrice2 = this.salePrice;
+    },
+    infoError() {
+      this.error = true;
+      setTimeout(() => {
+        this.error = false;
+      }, 5000);
+    },
     async calculateShipping() {
       this.e1 = 2;
       this.valid = false;
@@ -507,8 +932,7 @@ export default {
         city: this.city,
         state: this.state,
         zip: this.zip,
-        country: "US",
-        email: this.email,
+        country: this.country,
       };
 
       //calculate layers thick in envelope
@@ -542,11 +966,11 @@ export default {
 
       var parcel = {
         template: null,
-        length: (big ? 30.48 : 20.32).toString(),
-        width: (big ? 21.59 : 10.16).toString(),
-        height: 0.16 * layers.toFixed(4).toString(),
+        length: "10",
+        width: "10",
+        height: "0.16",
         distance_unit: "cm",
-        weight: weight.toFixed(4).toString(),
+        weight: "2.00",
         mass_unit: "oz",
         extra: {},
         test: true,
@@ -566,7 +990,7 @@ export default {
       );
       this.shippingRates = shipment.rates;
       this.shippingRates.sort(this.sortShippingRates);
-      if (this.productPrice >= 10) {
+      if (this.productPrice >= 10 && this.country == "United States") {
         var freeRate = {
           amount: ["0.00"],
           estimated_days: 5,
@@ -596,6 +1020,7 @@ export default {
         " | " +
         this.shippingRates[this.shippingMethod]["servicelevel"]["name"];
       this.totalCost = this.$shippingPrice + this.productPrice;
+      this.totalCost2 = this.totalCost;
     },
     createToken() {
       this.loading = true;
@@ -604,16 +1029,21 @@ export default {
       try {
         window.Stripe.createToken(this.card, (status, response) => {
           if (response.error) {
+            this.loading = false;
+            this.failed = true;
             this.stripeCheck = false;
             this.errors.push(response.error.message);
             // eslint-disable-next-line
+
             console.error(response);
           } else {
+            var price = this.totalCost2;
+            if (this.salePrice) price = this.salePrice2;
+
             const payload = {
               token: response.id,
               orderNum: this.$cart[0],
-              price:
-                parseFloat(this.productPrice) + parseFloat(this.$shippingPrice),
+              price: price,
             };
             axios
               .post(this.$baseUrl + "/api/charge/", payload)
@@ -634,7 +1064,8 @@ export default {
                   email: this.email,
                   address: this.address,
                   city: this.city,
-                  state: this.stateAbrev[this.state],
+                  state: this.state,
+                  country: this.country,
                   zipCode: this.zip,
                   boards: boards,
                   shipping: this.$shippingMethod,
@@ -646,17 +1077,43 @@ export default {
                 axios
                   .post(this.$baseUrl + "/api/orders/", formData)
                   .then(() => {
+                    // if (this.num_orders >= 0) {
+                    //   axios
+                    //     .post(this.$baseUrl + "/api/account/", {
+                    //       action: "inc",
+                    //       num: this.num_orders++,
+                    //     })
+                    //     .then(() => {
+                    //       this.$router.push({ path: "/success" });
+                    //     })
+                    //     .catch((error) => {
+                    //       console.error(error);
+                    //       this.loading = false;
+                    //       this.failed = true;
+                    //     });
+                    // } else {
                     this.$router.push({ path: "/success" });
+                  })
+                  .catch((error) => {
+                    console.error(error);
+                    this.loading = false;
+                    this.failed = true;
+                    this.stripeCheck = false;
                   });
               })
               .catch((error) => {
                 console.error(error);
+                this.loading = false;
+                this.failed = true;
+                this.stripeCheck = false;
               });
           }
         });
       } catch (e) {
         console.error(e);
+        this.loading = false;
         this.failed = true;
+        this.stripeCheck = false;
       }
     },
   },
@@ -672,6 +1129,18 @@ export default {
     this.productPrice = 0;
     for (let i = 1; i < this.$cart.length; i++) {
       this.productPrice += this.$cart[i].price;
+    }
+    if (this.$login.length > 8) {
+      this.firstname = this.$login[1];
+      this.lastname = this.$login[2];
+      this.email = this.$login[3];
+      this.address = this.$login[4];
+      this.city = this.$login[5];
+      this.state = this.$login[6];
+      this.zip = this.$login[7];
+      this.login = this.$login[0];
+      this.num_orders = this.$login[8];
+      this.valid = true;
     }
   },
   directives: { mask },
