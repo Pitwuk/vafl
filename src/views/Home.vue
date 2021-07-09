@@ -7,29 +7,33 @@
         {{ sale_days }}:{{ sale_hours }}:{{ sale_minutes }}:{{ sale_seconds }}
       </h1>
     </div>
-    <v-carousel
-      cycle
-      interval="6000"
-      hide-delimiters
-      class="shadow"
-      height="45vh"
-    >
-      <v-carousel-item v-for="(item, i) in items" :key="i" :src="item.src">
-        <h2 class="carousel_text">{{ slideText[i] }}</h2>
-      </v-carousel-item>
-      <div class="button">
+    <v-container>
+      <v-carousel
+        cycle
+        interval="6000"
+        hide-delimiters
+        hide-delimiter-background
+        show-arrows-on-hover
+        class="shadow"
+        height="40vh"
+      >
+        <v-carousel-item v-for="(item, i) in items" :key="i" :src="item.src">
+          <h2 class="carousel_text">{{ slideText[i] }}</h2>
+        </v-carousel-item>
+      </v-carousel>
+
         <v-btn
           x-large
           raised
           @click="orderRedirect()"
-          width="200"
-          height="100"
-          color="primary"
-          class="order_button"
+          width="100%"
+          height="80"
+          color="secondary"
+          class="order_button shadow"
           >Order Now</v-btn
         >
-      </div>
-    </v-carousel>
+
+    </v-container>
     <div class="quaternary">
       <v-container>
         <v-row>
@@ -38,7 +42,8 @@
               <v-card
                 href="/support"
                 :elevation="hover ? 12 : 2"
-                class="home-card"
+                class="home-card center"
+                width="80%"
               >
                 <v-img
                   src="../assets/timer.svg"
@@ -58,6 +63,7 @@
                 href="/capabilities"
                 :elevation="hover ? 12 : 2"
                 class="home-card"
+                width="80%"
               >
                 <v-img
                   src="../assets/microscope.svg"
@@ -80,6 +86,7 @@
                 href="/about"
                 :elevation="hover ? 12 : 2"
                 class="home-card"
+                width="80%"
               >
                 <v-img
                   src="../assets/michigan.svg"
@@ -100,7 +107,7 @@
       </v-container>
     </div>
     <div class="tertiary shadow">
-      <v-container>
+      <v-container >
         <v-row>
           <v-col cols="12" md="4">
             <img src="../assets/letter.svg" class="shipping_image" />
@@ -195,24 +202,35 @@ export default {
         .substring(1, response.data.length - 1)
         .split(', "');
 
-      this.fast_time = sitevars[5].substring(
-        sitevars[5].indexOf(": ") + 3,
-        sitevars[5].length - 1
+      this.fast_time = sitevars[3].substring(
+        sitevars[3].indexOf(": ") + 3,
+        sitevars[3].length - 1
       );
       this.pricePerCm = sitevars[6].substring(
         sitevars[6].indexOf(": ") + 3,
         sitevars[6].length - 1
       );
-      this.slideText.push(
-        "• " + this.fast_time + " turnaround time\n• Fast shipping"
+      this.turbo_multiplier = parseFloat(
+        sitevars[10].substring(
+          sitevars[10].indexOf(": ") + 3,
+          sitevars[10].length - 1
+        )
       );
+      if (this.turbo_multiplier != -1)
+        this.slideText.push(
+          "• Same-Day Shipping On Orders Placed Before 12 PM EST\n• Fast shipping"
+        );
+      else
+        this.slideText.push(
+          "• " + this.fast_time + " build time\n• Fast shipping"
+        );
       this.slideText.push(
         "• $" + this.pricePerCm + " / sqcm \n• Free Shipping on orders over $10"
       );
 
-      this.sale_end = sitevars[2].substring(
-        sitevars[2].indexOf(": ") + 3,
-        sitevars[2].length - 1
+      this.sale_end = sitevars[4].substring(
+        sitevars[4].indexOf(": ") + 3,
+        sitevars[4].length - 1
       );
       this.currtime = new Date();
       this.total = Date.parse(this.sale_end) - Date.parse(this.currtime);
@@ -229,6 +247,7 @@ export default {
 .home-card {
   height: 400px;
   padding: 10px;
+  margin: auto;
 }
 .home-card-text {
   text-align: center;
@@ -248,23 +267,23 @@ export default {
   left: 60px;
   bottom: 30px;
   margin-right: 210px;
-  font-size: 4vw;
+  width:80%;
+  /*font-size:3rem;*/
   /* -webkit-text-stroke: 1.5px black;
   -webkit-text-fill-color: white; */
   text-shadow: 4px 4px 2px black;
 }
-.button {
-  position: absolute;
-  right: 2%;
-  bottom: 2%;
-  box-shadow: 2px 2px 2px white;
-}
 .order_button {
   font-size: 25px;
+  border-radius: 0px;
 }
 .quaternary {
   width: 100%;
+  background-image: url("../assets/clean-textile.png");
+  background-repeat: repeat;
+  background-size: 100;
 }
+
 .start_header {
   padding-top: 30px;
   padding-bottom: 30px;
@@ -284,12 +303,9 @@ a {
   box-shadow: 0 19px 24px rgba(0, 0, 0, 0.07), 0 15px 12px rgba(0, 0, 0, 0.13);
 }
 .shipping {
+  margin: auto;
   padding: 10px;
-  padding-top: 9%;
-  display: inline-block;
-  vertical-align: middle;
-  line-height: normal;
-  /* line-height: 500%; */
+  padding-top: 8.5%;
 }
 .shipping_image {
   display: inline-block;

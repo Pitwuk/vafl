@@ -48,6 +48,15 @@
               <v-row>
                 <v-col cols="12" md="8">
                   <v-text-field
+                    v-model="companyname"
+                    label="Company name"
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+
+              <v-row>
+                <v-col cols="12" md="8">
+                  <v-text-field
                     v-model="email"
                     :rules="emailRules"
                     label="E-mail"
@@ -246,7 +255,10 @@
                         v-text="
                           ' ' +
                           Math.round(
-                            (1 - parseFloat(salePrice) / totalCost) * 100
+                            (1 -
+                              (parseFloat(salePrice) - $shippingPrice) /
+                                (totalCost - $shippingPrice)) *
+                              100
                           ) +
                           '% off'
                         "
@@ -289,12 +301,128 @@
                 </v-col>
               </v-row>
               <v-row>
+                <v-col>
+                  <v-card-subtitle class="headline">
+                    Billing Address
+                  </v-card-subtitle>
+
+                  <v-checkbox
+                    v-model="bill_address_same"
+                    label="Same as Shipping Address"
+                  ></v-checkbox>
+                </v-col>
+              </v-row>
+              <v-form v-if="!bill_address_same" v-model="bill_valid">
+                <v-container>
+                  <v-row>
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        v-model="bill_firstname"
+                        :rules="nameRules"
+                        :counter="32"
+                        label="First name"
+                        required
+                      ></v-text-field>
+                    </v-col>
+
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        v-model="bill_lastname"
+                        :rules="nameRules"
+                        :counter="32"
+                        label="Last name"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+
+                  <v-row>
+                    <v-col cols="12" md="8">
+                      <v-text-field
+                        v-model="companyname"
+                        label="Company name"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+
+                  <v-row>
+                    <v-col cols="12" md="8">
+                      <v-text-field
+                        v-model="bill_email"
+                        :rules="emailRules"
+                        label="E-mail"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="12" md="8">
+                      <v-autocomplete
+                        v-model="bill_country"
+                        :items="country_list"
+                        :rules="countryRules"
+                        label="Country"
+                      ></v-autocomplete>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        v-model="bill_address"
+                        :rules="addressRules"
+                        label="Address"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        v-model="bill_city"
+                        :rules="cityRules"
+                        label="City"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="12" md="4">
+                      <v-autocomplete
+                        v-if="country == 'United States'"
+                        v-model="bill_state"
+                        :items="us_states"
+                        :rules="stateRules"
+                        label="State/Territory"
+                        append-icon="mdi-city"
+                      ></v-autocomplete>
+                      <v-autocomplete
+                        v-if="country == 'Canada'"
+                        v-model="bill_state"
+                        :items="ca_provinces"
+                        :rules="stateRules"
+                        label="Province"
+                        append-icon="mdi-city"
+                      ></v-autocomplete>
+                      <v-text-field
+                        v-if="country != 'Canada' && country != 'United States'"
+                        v-model="bill_state"
+                        label="State/Province"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        v-model="bill_zip"
+                        label="Zip Code"
+                        required
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-form>
+              <v-row>
                 <v-col cols="12" md="8">
                   <v-text-field
                     v-model="card.number"
                     :rules="cardRules"
                     label="Card Number"
-                    v-mask="'#### #### #### ####'"
                     required
                     outlined
                     append-icon="https://js.stripe.com/v3/fingerprinted/img/visa-365725566f9578a9589553aa9296d178.svg"
@@ -426,16 +554,21 @@ export default {
   data: () => ({
     e1: 1,
     valid: false,
+    bill_valid: true,
     loading: false,
     error: false,
     failed: false,
     firstname: "",
     lastname: "",
+    bill_firstname: "",
+    bill_lastname: "",
+    companyname: "",
     nameRules: [
       (v) => !!v || "Name is required",
       (v) => v.length <= 32 || "Name must be less than 32 characters",
     ],
     email: "",
+    bill_email: "",
     emailRules: [
       (v) => !!v || "E-mail is required",
       (v) => /.+@.+/.test(v) || "E-mail must be valid",
@@ -443,11 +576,13 @@ export default {
       (v) => v.length <= 64 || "E-mail must be less than 64 characters",
     ],
     address: "",
+    bill_address: "",
     addressRules: [
       (v) => !!v || "Address is required",
       (v) => v.length <= 128 || "Address must be less than 128 characters",
     ],
     city: "",
+    bill_city: "",
     cityRules: [
       (v) => !!v || "City is required",
       (v) => v.length <= 32 || "City must be less than 32 characters",
@@ -583,13 +718,9 @@ export default {
       "Yukon Territory",
     ],
 
-    stateRules: [
-      (v) =>
-        (!!v &&
-          (this.country == "United States" || this.country == "Canada")) ||
-        "State is required",
-    ],
+    stateRules: [(v) => !!v || "State is required"],
     country: "United States",
+    bill_country: "United States",
     country_list: [
       "Afghanistan",
       "Aland Islands",
@@ -826,6 +957,7 @@ export default {
     ],
     countryRules: [(v) => !!v || "Country is required"],
     zip: "",
+    bill_zip: "",
     zipRules: [
       (v) =>
         (!!v &&
@@ -836,6 +968,7 @@ export default {
     shippingMethod: 0,
     productPrice: 0,
     totalCost: 0,
+    bill_address_same: true,
     card: {
       number: "",
       cvc: "",
@@ -1039,6 +1172,7 @@ export default {
           } else {
             var price = this.totalCost2;
             if (this.salePrice) price = this.salePrice2;
+            if (price < 0.5) price = 0.5;
 
             const payload = {
               token: response.id,

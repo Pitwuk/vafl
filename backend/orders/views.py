@@ -12,6 +12,7 @@ import base64
 import os
 import shutil
 import mimetypes
+from collections import OrderedDict
 from PIL import Image
 from gerber_renderer import Gerber
 from svglib.svglib import svg2rlg
@@ -204,7 +205,9 @@ def site_vars(request):
             ):
                 site = copy.deepcopy(p).__dict__
                 del site['_state']
-            response_object = json.dumps(site)
+
+
+            response_object = json.dumps(OrderedDict(sorted(site.items())))
 
             return JsonResponse(response_object, safe=False)
 
@@ -229,6 +232,10 @@ def site_vars(request):
                     price_per_sqcm=body['price_per_sqcm'])
                 SiteVars.objects.filter(site_pass="ggegeege").update(
                     promo_codes=body['promo_codes'])
+                SiteVars.objects.filter(site_pass="ggegeege").update(
+                    fast_multiplier=body['fast_multiplier'])
+                SiteVars.objects.filter(site_pass="ggegeege").update(
+                    turbo_multiplier=body['turbo_multiplier'])
                 return HttpResponse(status=200)
             except Exception as e:
                 print(e)
@@ -245,6 +252,8 @@ def site_vars(request):
                 site.fast_time = ''
                 site.price_per_sqcm = ''
                 site.promo_codes = ''
+                site.fast_multiplier = ''
+                site.turbo_multiplier = ''
                 site.save()
                 return HttpResponse(status=200)
             except Exception as e:

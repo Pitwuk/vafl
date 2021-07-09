@@ -489,6 +489,26 @@
           <v-row>
             <v-col cols="12" md="4">
               <v-text-field
+                v-model="fast_multiplier"
+                :rules="sitevarRules"
+                label="Fast Multiplier"
+                :counter="5"
+                required
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="turbo_multiplier"
+                :rules="sitevarRules"
+                label="Turbo Multiplier"
+                :counter="5"
+                required
+              ></v-text-field>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" md="4">
+              <v-text-field
                 v-model="promo_codes"
                 :rules="sitevarRules"
                 label="Promo Codes"
@@ -555,6 +575,7 @@ export default {
         { text: "Address", value: "address", sortable: false },
         { text: "City", value: "city", sortable: false },
         { text: "State", value: "state", sortable: false },
+        { text: "Country", value: "country", sortable: false },
         { text: "Zip Code", value: "zip", sortable: false },
         { text: "Stage", value: "stage", sortable: false },
       ],
@@ -584,6 +605,8 @@ export default {
       fast_time: "",
       price_per_sqcm: "",
       promo_codes: "",
+      fast_multiplier: "",
+      turbo_multiplier: "",
       sitevarRules: [(v) => !!v || "required"],
       valid: false,
       firstname: "",
@@ -717,6 +740,7 @@ export default {
         "Wyoming",
       ],
       stateRules: [(v) => !!v || "State is required"],
+      country: "",
       zip: "",
       zipRules: [
         (v) => !!v || "Zip Code is required",
@@ -934,11 +958,12 @@ export default {
           .split(', "');
 
         var boards = [];
+        console.log(orderData)
         var date = orderData[2].replace(/"/g, "");
         boards.push(date.substring(date.indexOf(": ") + 2));
         boards.push(
-          orderData[10]
-            .substring(11, orderData[10].length - 2)
+          orderData[11]
+            .substring(11, orderData[11].length - 2)
             .replace(/"/g, "")
             .replace(/'/g, '"')
             .replace(/},/g, "},***")
@@ -946,7 +971,7 @@ export default {
         );
         var parent = orderData[1].replace(/"/g, "");
         boards.push(parent.substring(parent.indexOf(": ") + 2));
-        var shipping = orderData[11].replace(/"/g, "");
+        var shipping = orderData[12].replace(/"/g, "");
         boards.push(shipping.substring(shipping.indexOf(": ") + 2));
         var first = orderData[3].replace(/"/g, "");
         var last = orderData[4].replace(/"/g, "");
@@ -963,7 +988,9 @@ export default {
         boards.push(city.substring(city.indexOf(": ") + 2));
         var state = orderData[8].replace(/"/g, "");
         boards.push(state.substring(state.indexOf(": ") + 2));
-        var zip = orderData[9].replace(/"/g, "");
+        var country = orderData[9].replace(/"/g, "");
+        boards.push(country.substring(country.indexOf(": ") + 2));
+        var zip = orderData[10].replace(/"/g, "");
         boards.push(zip.substring(zip.indexOf(": ") + 2));
 
         for (let j = 0; j < boards[1].length; j++) {
@@ -976,7 +1003,8 @@ export default {
           this.orders[this.orders.length - 1]["address"] = boards[6];
           this.orders[this.orders.length - 1]["city"] = boards[7];
           this.orders[this.orders.length - 1]["state"] = boards[8];
-          this.orders[this.orders.length - 1]["zip"] = boards[9];
+          this.orders[this.orders.length - 1]["state"] = boards[9];
+          this.orders[this.orders.length - 1]["zip"] = boards[10];
         }
       }
     },
@@ -1029,21 +1057,21 @@ export default {
         .substring(1, response.data.length - 1)
         .split(', "');
       console.log(sitevars);
-      this.first_time_sale = sitevars[2].substring(
-        sitevars[2].indexOf(": ") + 3,
-        sitevars[2].length - 1
-      );
-      this.colors = sitevars[3].substring(
-        sitevars[3].indexOf(": ") + 3,
-        sitevars[3].length - 1
-      );
-      this.silk_colors = sitevars[4].substring(
+      this.first_time_sale = sitevars[4].substring(
         sitevars[4].indexOf(": ") + 3,
         sitevars[4].length - 1
       );
-      this.fast_time = sitevars[5].substring(
-        sitevars[5].indexOf(": ") + 3,
-        sitevars[5].length - 1
+      this.colors = sitevars[1].substring(
+        sitevars[1].indexOf(": ") + 3,
+        sitevars[1].length - 1
+      );
+      this.silk_colors = sitevars[8].substring(
+        sitevars[8].indexOf(": ") + 3,
+        sitevars[8].length - 1
+      );
+      this.fast_time = sitevars[3].substring(
+        sitevars[3].indexOf(": ") + 3,
+        sitevars[3].length - 1
       );
       this.price_per_sqcm = sitevars[6].substring(
         sitevars[6].indexOf(": ") + 3,
@@ -1052,6 +1080,14 @@ export default {
       this.promo_codes = sitevars[7].substring(
         sitevars[7].indexOf(": ") + 3,
         sitevars[7].length - 1
+      );
+      this.fast_multiplier = sitevars[2].substring(
+        sitevars[2].indexOf(": ") + 3,
+        sitevars[2].length - 1
+      );
+      this.turbo_multiplier = sitevars[10].substring(
+        sitevars[10].indexOf(": ") + 3,
+        sitevars[10].length - 1
       );
     },
     async updateSiteVars() {
@@ -1063,6 +1099,8 @@ export default {
         fast_time: this.fast_time,
         price_per_sqcm: this.price_per_sqcm,
         promo_codes: this.promo_codes,
+        fast_multiplier: this.fast_multiplier,
+        turbo_multiplier: this.turbo_multiplier,
       };
 
       const response = await axios.post(

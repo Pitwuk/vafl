@@ -1,5 +1,11 @@
 <template >
-  <v-app-bar max-height="70" elevation="12" dark color="primary">
+  <v-app-bar height="60" elevation="12" dark color="primary">
+    <v-switch
+      v-model="unit_switch"
+      :label="`${unit_switch ? 'Imperial' : 'Metric'}`"
+      inset
+      class="switch"
+    ></v-switch>
     <v-img
       src="../assets/whiteLogo.png"
       contain
@@ -79,6 +85,7 @@ export default {
   data() {
     return {
       login_key: 0,
+      unit_switch: false,
     };
   },
   methods: {
@@ -118,5 +125,10 @@ export default {
 .name {
   margin: auto;
   padding: 5px;
+}
+.switch {
+  position: absolute;
+  left: 30px;
+  top: 15px;
 }
 </style>

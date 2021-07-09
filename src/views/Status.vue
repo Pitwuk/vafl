@@ -149,8 +149,10 @@ export default {
           .substring(1, response.data.length - 1)
           .split('", "');
 
-        var boards = orderData[9]
-          .substring(11, orderData[9].length - 1)
+        console.log(orderData);
+
+        var boards = orderData[10]
+          .substring(11, orderData[10].length - 1)
           .replace(/"/g, "")
           .replace(/'/g, '"')
           .replace(/},/g, "},***")

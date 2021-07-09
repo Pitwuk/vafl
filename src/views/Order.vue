@@ -1,18 +1,18 @@
 <template>
   <body class="quaternary">
-    <v-overlay opacity=".9" value="1">
+    <!-- <v-overlay opacity=".9" value="1">
       <v-card class="ma-4 pa-3">
         <p class="display-1 closed-text">
           We are currently closed for the holidays. Orders will reopen January
           4th.
         </p>
       </v-card>
-    </v-overlay>
+    </v-overlay> -->
     <Appbar />
     <v-form v-model="valid">
-      <v-container class="container">
+      <v-container class="order_container">
         <v-row>
-          <v-col cols="8">
+          <v-col cols="12" md="8">
             <v-card class="card" id="order_card">
               <v-card-title>
                 <h2 class="display-1">Order PCB</h2>
@@ -114,7 +114,12 @@
                     <span v-if="speed == 'Fast'"
                       >Ships in &#60; {{ fast_time }}</span
                     >
-                    <span v-if="speed == 'Turbo'">Ships in &#60; 3 hours</span>
+                    <span v-if="speed == 'Turbo' && hour < 12"
+                      >Ships Today</span
+                    >
+                    <span v-if="speed == 'Turbo' && hour >= 12"
+                      >Ships Tomorrow</span
+                    >
                   </v-tooltip>
                 </v-chip-group>
               </v-card-text>
@@ -215,7 +220,7 @@
             </v-card>
           </v-col>
 
-          <v-col>
+          <v-col cols="12" md="4">
             <v-card class="card">
               <v-card-title>
                 <h2 class="display-1">Price</h2>
@@ -399,6 +404,9 @@ export default {
     create_account_prompt: false,
     loading: false,
     failed: false,
+    hour: 0,
+    fast_enabled: true,
+    turbo_enabled: true,
     price: 0,
     salePrice: 0,
     sale: 1,
@@ -441,7 +449,9 @@ export default {
       (value) => value.length <= 512 || "Can not exceed 512 characters",
     ],
     layerOpt: ["1", "2"],
-    speeds: ["Economy", "Fast"],
+    speeds: ["Economy"],
+    fast_multiplier: -1,
+    turbo_multiplier: -1,
     colors: ["White", "Blue", "Red", "Any"],
     disabled_colors: [],
     silkOpt: ["White", "Black", "None"],
@@ -456,52 +466,45 @@ export default {
   methods: {
     updatePrice() {
       //swaps size
-      if (
-        this.order.width > 0 &&
-        this.order.height > 0 &&
-        this.order.width > this.order.height
-      ) {
-        var temp = this.order.width;
-        this.order.width = this.order.height;
-        this.order.height = temp;
-      }
-      if (this.width > 50 || this.height > 50) {
-        this.price =
-          parseInt(this.order.quantity) *
-          parseFloat(this.order.width / 10) *
-          parseFloat(this.order.height / 10) *
-          pricePerCm;
-      } else if (
-        parseFloat(this.order.width / 10) *
-          parseFloat(this.order.height / 10) *
-          pricePerCm <
-        2.0
-      ) {
-        this.price =
-          2.0 +
-          (parseInt(this.order.quantity) - 1) *
+      if (this.order.width > 0 && this.order.height > 0) {
+        if (this.order.width > this.order.height) {
+          var temp = this.order.width;
+          this.order.width = this.order.height;
+          this.order.height = temp;
+        }
+        if (this.width > 50 || this.height > 50) {
+          this.price =
+            parseInt(this.order.quantity) *
             parseFloat(this.order.width / 10) *
             parseFloat(this.order.height / 10) *
             pricePerCm;
-      } else {
-        this.price = 2.0 * parseInt(this.order.quantity);
+        } else if (
+          parseFloat(this.order.width / 10) *
+            parseFloat(this.order.height / 10) *
+            pricePerCm <
+          2.0
+        ) {
+          this.price =
+            2.0 +
+            (parseInt(this.order.quantity) - 1) *
+              parseFloat(this.order.width / 10) *
+              parseFloat(this.order.height / 10) *
+              pricePerCm;
+        } else {
+          this.price = 2.0 * parseInt(this.order.quantity);
+        }
+        if (this.order.speed == "Fast") this.price *= this.fast_multiplier;
+        else if (this.order.speed == "Turbo")
+          this.price *= this.turbo_multiplier;
+        if (this.order.color != "Any") {
+          if (this.order.speed == "Economy") this.price += 2;
+          else if (this.order.speed == "Fast") this.price += 4;
+        }
+        if (this.sale != 1 && this.num_orders == 0) {
+          this.salePrice = this.price * this.sale;
+          this.order.price = this.salePrice;
+        } else this.order.price = this.price;
       }
-      if (this.order.speed == "Fast") this.price *= 3.0;
-      else if (this.order.speed == "Turbo") {
-        var panels =
-          this.order.quantity / Math.floor(279.4 / this.order.height);
-        panels /= Math.floor(215.9 / this.order.width);
-        panels = Math.floor(panels) + 1;
-        this.price = 250 * panels;
-      }
-      if (this.order.color != "Any") {
-        if (this.order.speed == "Economy") this.price += 2;
-        else if (this.order.speed == "Fast") this.price += 4;
-      }
-      if (this.sale != 1 && this.num_orders == 0) {
-        this.salePrice = this.price * this.sale;
-        this.order.price = this.salePrice;
-      } else this.order.price = this.price;
     },
     onPickFile() {
       this.$refs.fileInput.click();
@@ -1414,9 +1417,9 @@ export default {
     const sitevars = response.data
       .substring(1, response.data.length - 1)
       .split(', "');
-    this.sale_end = sitevars[2].substring(
-      sitevars[2].indexOf(": ") + 3,
-      sitevars[2].length - 1
+    this.sale_end = sitevars[4].substring(
+      sitevars[4].indexOf(": ") + 3,
+      sitevars[4].length - 1
     );
     this.currtime = new Date();
     this.total = Date.parse(this.sale_end) - Date.parse(this.currtime);
@@ -1424,8 +1427,8 @@ export default {
       this.sale = 0.5;
       this.create_account_prompt = true;
     }
-    this.colors = sitevars[3]
-      .substring(sitevars[3].indexOf(": ") + 3, sitevars[3].length - 1)
+    this.colors = sitevars[1]
+      .substring(sitevars[1].indexOf(": ") + 3, sitevars[1].length - 1)
       .split(",");
     for (let i = 0; i < this.colors.length; i++) {
       if (this.colors[i][this.colors[i].length - 1] == "-") {
@@ -1437,8 +1440,8 @@ export default {
     }
     this.colors.push("Any");
 
-    this.silkOpt = sitevars[4]
-      .substring(sitevars[4].indexOf(": ") + 3, sitevars[4].length - 1)
+    this.silkOpt = sitevars[8]
+      .substring(sitevars[8].indexOf(": ") + 3, sitevars[8].length - 1)
       .split(",");
     for (let i = 0; i < this.silkOpt.length; i++) {
       if (this.silkOpt[i][this.silkOpt[i].length - 1] == "-") {
@@ -1450,9 +1453,9 @@ export default {
     }
     this.silkOpt.push("None");
 
-    this.fast_time = sitevars[5].substring(
-      sitevars[5].indexOf(": ") + 3,
-      sitevars[5].length - 1
+    this.fast_time = sitevars[3].substring(
+      sitevars[3].indexOf(": ") + 3,
+      sitevars[3].length - 1
     );
     pricePerCm = sitevars[6].substring(
       sitevars[6].indexOf(": ") + 3,
@@ -1462,6 +1465,20 @@ export default {
       sitevars[7].indexOf(": ") + 3,
       sitevars[7].length - 1
     );
+    this.fast_multiplier = parseFloat(
+      sitevars[2].substring(
+        sitevars[2].indexOf(": ") + 3,
+        sitevars[2].length - 1
+      )
+    );
+    this.turbo_multiplier = parseFloat(
+      sitevars[10].substring(
+        sitevars[10].indexOf(": ") + 3,
+        sitevars[10].length - 1
+      )
+    );
+    if (this.fast_multiplier != -1) this.speeds.push("Fast");
+    if (this.turbo_multiplier != -1) this.speeds.push("Turbo");
 
     if (this.$login.length > 8) {
       this.num_orders = this.$login[8];
@@ -1469,13 +1486,17 @@ export default {
     } else {
       this.num_orders = -1;
     }
+
+    // get time
+    var date = new Date();
+    this.hour = date.getHours() + date.getTimezoneOffset() / 60 - 5;
   },
   components: { Appbar, Bottom },
 };
 </script>
 
 <style scoped>
-.container {
+.order_container {
   padding-bottom: 10%;
 }
 .closed-text {

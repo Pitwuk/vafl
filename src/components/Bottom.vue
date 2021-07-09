@@ -35,7 +35,7 @@
         <a href="/about" class="footer-item">About Us</a>
       </li>
     </ul>
-    <span class="center">© Copyright 2020 VAFL PCB LLC</span>
+    <span class="center">© Copyright 2021 VAFL PCB LLC</span>
   </footer>
 </template>
 

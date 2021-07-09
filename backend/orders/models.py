@@ -28,6 +28,8 @@ class SiteVars(models.Model):
     price_per_sqcm = models.CharField(max_length=5, default='0.1')
     promo_codes = models.CharField(
         max_length=256)  #'code,0.10;code2,0.20' code1 10% off, code2 20% off
+    fast_multiplier = models.CharField(max_length=5, default='3.0')
+    turbo_multiplier = models.CharField(max_length=5, default='6.0')
 
 
 class Account(models.Model):
