@@ -1,5 +1,5 @@
 <template>
-  <body class="quaternary">
+  <body v-on:click="updateValues" class="quaternary">
     <!-- <v-overlay opacity=".9" value="1">
       <v-card class="ma-4 pa-3">
         <p class="display-1 closed-text">
@@ -60,9 +60,9 @@
                 <v-row>
                   <v-col cols="12" md="4">
                     <v-text-field
-                      v-model="order.width"
+                      v-model="display_width"
                       :rules="widthRules"
-                      label="Width (mm)"
+                      :label="`${is_imperial ? 'Width (in)' : 'Width (mm)'}`"
                       required
                       :readonly="!!drawing"
                       @change="updatePrice"
@@ -71,9 +71,9 @@
 
                   <v-col cols="12" md="4">
                     <v-text-field
-                      v-model="order.height"
+                      v-model="display_height"
                       :rules="heightRules"
-                      label="Height (mm)"
+                      :label="`${is_imperial ? 'Height (in)' : 'Height (mm)'}`"
                       required
                       :readonly="!!drawing"
                       @change="updatePrice"
@@ -397,82 +397,118 @@ const fs = require("fs");
 var pricePerCm = 0.1;
 
 export default {
-  data: () => ({
-    valid: false,
-    overlay: false,
-    drc_overlay: true,
-    create_account_prompt: false,
-    loading: false,
-    failed: false,
-    hour: 0,
-    fast_enabled: true,
-    turbo_enabled: true,
-    price: 0,
-    salePrice: 0,
-    sale: 1,
-    total: -1,
-    num_orders: -1,
-    imageUrl: "",
-    gerber: "",
-    order: {
-      name: "PCB Prototyping Service",
-      orderNum: "",
-      width: "0",
-      height: "0",
-      quantity: "1",
-      speed: "Economy",
-      color: "Any",
-      silk: "None",
-      layers: "2",
-      request: "",
+  data() {
+    return {
+      is_imperial: this.$global.units,
+      display_width: "0",
+      display_height: "0",
+      valid: false,
+      overlay: false,
+      drc_overlay: true,
+      create_account_prompt: false,
+      loading: false,
+      failed: false,
+      hour: 0,
+      fast_enabled: true,
+      turbo_enabled: true,
       price: 0,
-      stage: "Processing",
-    },
-    quantRules: [
-      (value) => !!value || "Required",
-      (value) =>
-        (!isNaN(value) && !value.includes(".")) || "Must be an integer value",
-    ],
-    widthRules: [
-      (value) => !!value || "Required",
-      (value) => !isNaN(value) || "Must be a number",
-      (value) => value > 0 || "Must be greater than 0",
-      (value) => value <= 215 || "Maximum width is 215 mm",
-    ],
-    heightRules: [
-      (value) => !!value || "Required",
-      (value) => !isNaN(value) || "Must be a number",
-      (value) => value > 0 || "Must be greater than 0",
-      (value) => value <= 279 || "Maximum height is 279 mm",
-    ],
-    requestRules: [
-      (value) => value.length <= 512 || "Can not exceed 512 characters",
-    ],
-    layerOpt: ["1", "2"],
-    speeds: ["Economy"],
-    fast_multiplier: -1,
-    turbo_multiplier: -1,
-    colors: ["White", "Blue", "Red", "Any"],
-    disabled_colors: [],
-    silkOpt: ["White", "Black", "None"],
-    disabled_silk: [],
-    fast_time: "",
-    drawing: false,
-    finish: "Immersion Tin",
-    drill_diameter_not_tenth_mm: false,
-    drill_diameter_too_small: false,
-    trace_width_error: false,
-  }),
+      salePrice: 0,
+      sale: 1,
+      total: -1,
+      num_orders: -1,
+      imageUrl: "",
+      gerber: "",
+      order: {
+        name: "PCB Prototyping Service",
+        orderNum: "",
+        width: "0",
+        height: "0",
+        quantity: "1",
+        speed: "Economy",
+        color: "Any",
+        silk: "None",
+        layers: "2",
+        request: "",
+        price: 0,
+        stage: "Processing",
+      },
+      quantRules: [
+        (value) => !!value || "Required",
+        (value) =>
+          (!isNaN(value) && !value.includes(".")) || "Must be an integer value",
+      ],
+      widthRules: [
+        (value) => !!value || "Required",
+        (value) => !isNaN(value) || "Must be a number",
+        (value) => value > 0 || "Must be greater than 0",
+        (value) => value <= 215 || "Maximum width is 215 mm",
+      ],
+      heightRules: [
+        (value) => !!value || "Required",
+        (value) => !isNaN(value) || "Must be a number",
+        (value) => value > 0 || "Must be greater than 0",
+        (value) => value <= 279 || "Maximum height is 279 mm",
+      ],
+      requestRules: [
+        (value) => value.length <= 512 || "Can not exceed 512 characters",
+      ],
+      layerOpt: ["1", "2"],
+      speeds: ["Economy"],
+      fast_multiplier: -1,
+      turbo_multiplier: -1,
+      colors: ["White", "Blue", "Red", "Any"],
+      disabled_colors: [],
+      silkOpt: ["White", "Black", "None"],
+      disabled_silk: [],
+      fast_time: "",
+      drawing: false,
+      finish: "Immersion Tin",
+      drill_diameter_not_tenth_mm: false,
+      drill_diameter_too_small: false,
+      trace_width_error: false,
+    };
+  },
   methods: {
-    updatePrice() {
-      //swaps size
-      if (this.order.width > 0 && this.order.height > 0) {
-        if (this.order.width > this.order.height) {
-          var temp = this.order.width;
-          this.order.width = this.order.height;
-          this.order.height = temp;
+    updateValues() {
+      if (this.is_imperial != this.$global.units) {
+        this.is_imperial = this.$global.units;
+        if (this.is_imperial) {
+          this.display_width = (parseFloat(this.display_width) / 25.4).toFixed(
+            6
+          );
+          this.display_height = (
+            parseFloat(this.display_height) / 25.4
+          ).toFixed(6);
+        } else {
+          this.display_width = (parseFloat(this.display_width) * 25.4).toFixed(
+            4
+          );
+          this.display_height = (
+            parseFloat(this.display_height) * 25.4
+          ).toFixed(4);
         }
-        if (this.width > 50 || this.height > 50) {
+      }
+    },
+    updatePrice() {
+      if (this.display_width != "0" && this.display_height != "0") {
+        //swaps size
+        if (parseFloat(this.display_width) > parseFloat(this.display_height)) {
+          var temp = this.display_width;
+          this.display_width = this.display_height;
+          this.display_height = temp;
+        }
+        if (this.is_imperial) {
+          this.order.width = parseFloat(this.display_width) * 25.4;
+          this.order.height = parseFloat(this.display_height) * 25.4;
+        } else {
+          this.order.width = parseFloat(this.display_width);
+          this.order.height = parseFloat(this.display_height);
+        }
+      }
+
+      if (this.order.width > 0 && this.order.height > 0) {
+        console.log(this.order.width);
+        if (this.order.width > 50 || this.order.height > 50) {
           this.price =
             parseInt(this.order.quantity) *
             parseFloat(this.order.width / 10) *
@@ -1262,6 +1298,13 @@ export default {
       } else {
         this.order.width = this.width;
         this.order.height = this.height;
+      }
+      if (this.is_imperial) {
+        this.display_width = this.order.width / 25.4;
+        this.display_height = this.order.height / 25.4;
+      } else {
+        this.display_width = this.order.width;
+        this.display_height = this.order.height;
       }
       if (this.verbose)
         console.log(

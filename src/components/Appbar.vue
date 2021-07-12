@@ -2,7 +2,7 @@
   <v-app-bar height="60" elevation="12" dark color="primary">
     <v-switch
       v-model="unit_switch"
-      :label="`${unit_switch ? 'Imperial' : 'Metric'}`"
+      :label="`${$global.units ? 'Imperial' : 'Metric'}`"
       inset
       class="switch"
     ></v-switch>
@@ -85,7 +85,7 @@ export default {
   data() {
     return {
       login_key: 0,
-      unit_switch: false,
+      unit_switch: this.$global.units,
     };
   },
   methods: {
@@ -102,6 +102,11 @@ export default {
       this.$login.length = 0;
       this.login_key++;
       console.log(this.$login);
+    },
+  },
+  watch: {
+    unit_switch(newValue) {
+      this.$global.units = this.unit_switch;
     },
   },
 };

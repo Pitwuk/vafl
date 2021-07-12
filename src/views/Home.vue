@@ -1,5 +1,5 @@
 <template>
-  <v-app class="quaternary">
+  <body v-on:click="updateValues" class="quaternary">
     <Appbar />
     <div v-if="sale_bool" class="sale_banner">
       <h1 class="sale_text">
@@ -16,23 +16,23 @@
         show-arrows-on-hover
         class="shadow"
         height="40vh"
+        v-if="render_carousel"
       >
         <v-carousel-item v-for="(item, i) in items" :key="i" :src="item.src">
           <h2 class="carousel_text">{{ slideText[i] }}</h2>
         </v-carousel-item>
       </v-carousel>
 
-        <v-btn
-          x-large
-          raised
-          @click="orderRedirect()"
-          width="100%"
-          height="80"
-          color="secondary"
-          class="order_button shadow"
-          >Order Now</v-btn
-        >
-
+      <v-btn
+        x-large
+        raised
+        @click="orderRedirect()"
+        width="100%"
+        height="80"
+        color="secondary"
+        class="order_button shadow"
+        >Order Now</v-btn
+      >
     </v-container>
     <div class="quaternary">
       <v-container>
@@ -107,7 +107,7 @@
       </v-container>
     </div>
     <div class="tertiary shadow">
-      <v-container >
+      <v-container>
         <v-row>
           <v-col cols="12" md="4">
             <img src="../assets/letter.svg" class="shipping_image" />
@@ -140,7 +140,7 @@
     </v-container>
 
     <Bottom />
-  </v-app>
+  </body>
 </template>
 
 <script>
@@ -151,6 +151,8 @@ const axios = require("axios");
 export default {
   data() {
     return {
+      is_imperial: this.$global.units,
+      render_carousel: true,
       sale_bool: false,
       sale_days: 0,
       fast_time: "",
@@ -170,6 +172,45 @@ export default {
     };
   },
   methods: {
+    updateValues() {
+      if (this.is_imperial != this.$global.units) {
+        this.is_imperial = this.$global.units;
+        if (this.is_imperial) {
+          this.updateSlideText();
+        } else {
+          this.updateSlideText();
+        }
+        this.$forceUpdate();
+      }
+    },
+    updateSlideText() {
+      if (this.is_imperial) {
+        this.slideText = ["• Made In the USA\n• $2 boards under 2x2in"];
+      } else {
+        this.slideText = ["• Made In the USA\n• $2 boards under 50x50mm"];
+      }
+      if (this.turbo_multiplier != -1)
+        this.slideText.push(
+          "• Same-Day Shipping On Orders Placed Before 12 PM EST\n• Fast shipping"
+        );
+      else
+        this.slideText.push(
+          "• " + this.fast_time + " build time\n• Fast shipping"
+        );
+      if (this.is_imperial) {
+        this.slideText.push(
+          "• $" +
+            this.pricePerCm * 2.54 +
+            " / sqin \n• Free Shipping on orders over $10"
+        );
+      } else {
+        this.slideText.push(
+          "• $" +
+            this.pricePerCm +
+            " / sqcm \n• Free Shipping on orders over $10"
+        );
+      }
+    },
     formatNum: (num) => (num < 10 ? "0" + num : num),
     saleCountDown() {
       if (this.total > 0) {
@@ -216,17 +257,7 @@ export default {
           sitevars[10].length - 1
         )
       );
-      if (this.turbo_multiplier != -1)
-        this.slideText.push(
-          "• Same-Day Shipping On Orders Placed Before 12 PM EST\n• Fast shipping"
-        );
-      else
-        this.slideText.push(
-          "• " + this.fast_time + " build time\n• Fast shipping"
-        );
-      this.slideText.push(
-        "• $" + this.pricePerCm + " / sqcm \n• Free Shipping on orders over $10"
-      );
+      this.updateSlideText();
 
       this.sale_end = sitevars[4].substring(
         sitevars[4].indexOf(": ") + 3,
@@ -267,7 +298,7 @@ export default {
   left: 60px;
   bottom: 30px;
   margin-right: 210px;
-  width:80%;
+  width: 80%;
   /*font-size:3rem;*/
   /* -webkit-text-stroke: 1.5px black;
   -webkit-text-fill-color: white; */
@@ -310,7 +341,8 @@ a {
 .shipping_image {
   display: inline-block;
   vertical-align: middle;
-  padding: 10px;
+  padding-top: 10px;
+  padding-left: 10px;
   width: 50%;
   max-height: 250px;
 }

@@ -29,7 +29,7 @@ Vue.prototype.$zip = 0;
 Vue.prototype.$login = [];
 Vue.prototype.$shippingPrice = 0;
 Vue.prototype.$shippingMethod = "";
-Vue.prototype.$units = [];
+Vue.prototype.$global = {"units":false};
 
 new Vue({
   router,

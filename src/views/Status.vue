@@ -1,5 +1,5 @@
 <template>
-  <body class="quaternary">
+  <body v-on:click="updateValues" class="quaternary">
     <Appbar />
     <v-container v-if="!loaded" class="fill-height quaternary" fluid>
       <v-row align="start" justify="center">
@@ -88,8 +88,18 @@
               <v-divider></v-divider>
               <p>Quantity: {{ item.quantity }}pcs</p>
               <p>
-                Size: {{ item.width.toFixed(2) }} x
-                {{ item.height.toFixed(2) }}mm
+                Size:
+                {{
+                  is_imperial
+                    ? (item.width / 25.4).toFixed(4)
+                    : item.width.toFixed(2)
+                }}
+                x
+                {{
+                  is_imperial
+                    ? (item.height / 25.4).toFixed(4)
+                    : item.height.toFixed(2)
+                }}{{ is_imperial ? "in" : "mm" }}
               </p>
               <p>Speed: {{ item.speed }}</p>
               <p>Color: {{ item.color }}</p>
@@ -117,17 +127,26 @@ import Bottom from "../components/Bottom.vue";
 const axios = require("axios");
 
 export default {
-  data: () => ({
-    failed: false,
-    valid: false,
-    loaded: false,
-    board_arr: [],
-    orderRules: [
-      (value) => !!value || "Required",
-      (value) => value.length == 16 || "Must be 16 characters",
-    ],
-  }),
+  data() {
+    return {
+      is_imperial: this.$global.units,
+      failed: false,
+      valid: false,
+      loaded: false,
+      board_arr: [],
+      orderRules: [
+        (value) => !!value || "Required",
+        (value) => value.length == 16 || "Must be 16 characters",
+      ],
+    };
+  },
   methods: {
+    updateValues() {
+      if (this.is_imperial != this.$global.units) {
+        this.is_imperial = this.$global.units;
+        this.$forceUpdate();
+      }
+    },
     async checkStatus() {
       this.failed = false;
       try {
